@@ -21,13 +21,13 @@
         <Vaadin-Addon>${project.artifactId}-${project.version}.jar</Vaadin-Addon>
     </properties>
     <scm>
-        <url>git://github.com/your-github-account/vaadin-failover.git</url>
-        <connection>scm:git:git://github.com/your-github-account/vaadin-failover.git</connection>
-        <developerConnection>scm:git:ssh://git@github.com:/your-github-account/vaadin-failover.git</developerConnection>
+        <url>git://github.com/mvysny/vaadin-failover.git</url>
+        <connection>scm:git:git://github.com/mvysny/vaadin-failover.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com:/mvysny/vaadin-failover.git</developerConnection>
     </scm>
     <issueManagement>
         <system>GitHub</system>
-        <url>https://github.com/your-github-account/vaadin-failover/issues</url>
+        <url>https://github.com/mvysny/vaadin-failover/issues</url>
     </issueManagement>
     <licenses>
         <license>
