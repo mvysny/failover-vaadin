@@ -1,9 +1,30 @@
 # vaadin-failover
 
-This is a Vaadin add-on project created with in.virit:vaadin-gwt-addon archetype.
-The project supports GWT based extensions for Vaadin.
+A proof-of-concept of a browser-side load-balancer. Currently, when the connection to
+the server is lost, the browser just redirects to http://vaadin.com . In the future,
+there could be a list of URLs of back-up/spare/other nodes to reconnect to.
+
+Advantages:
+
+* No single point of failure
+* Incredibly easy setup
+* No server-side clustering needed
+* Servers are totally independent one from another, and may even use a mixture of server kinds,
+  different versions of application, ...
+
+Disadvantages:
+
+* Session is lost
+* If the main server dies, new clients cannot connect.
+* If the main server dies and user presses F5 in the browser, she will just get "Connection Refused".
+  This could be remedied by offline mode but this needs investigation.
+
+
 
 ## Development instructions 
+
+This is a Vaadin add-on project created with in.virit:vaadin-gwt-addon archetype.
+The project supports GWT based extensions for Vaadin.
 
 1. Import to your favourite IDE
 2. Run main method of the Server class to launch embedded web server that lists all your test UIs at http://localhost:9998

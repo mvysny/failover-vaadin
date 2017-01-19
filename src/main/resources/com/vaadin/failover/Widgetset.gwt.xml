@@ -5,6 +5,10 @@
 	<inherits name="com.vaadin.terminal.gwt.DefaultWidgetSet" />
 	
 	<set-configuration-property name="devModeRedirectEnabled" value="true" />
-	
-	<source path="client/"></source>
+
+	<source path="client/"/>
+
+	<replace-with class="com.vaadin.failover.client.FailoverReconnectDialog">
+		<when-type-is class="com.vaadin.client.communication.ReconnectDialog" />
+	</replace-with>
 </module>
