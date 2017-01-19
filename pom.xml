@@ -2,7 +2,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.vaadin.addons.failover</groupId>
     <artifactId>failover-vaadin</artifactId>
-    <version>0.0.2-SNAPSHOT</version>
+    <version>0.0.2</version>
     <packaging>bundle</packaging>
     <organization>
         <name>Vaadin Community</name>
@@ -23,7 +23,7 @@
         <url>git://github.com/mvysny/vaadin-failover.git</url>
         <connection>scm:git:git://github.com/mvysny/vaadin-failover.git</connection>
         <developerConnection>scm:git:ssh://git@github.com:/mvysny/vaadin-failover.git</developerConnection>
-      <tag>HEAD</tag>
+      <tag>failover-vaadin-0.0.2</tag>
   </scm>
     <issueManagement>
         <system>GitHub</system>
