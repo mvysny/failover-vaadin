@@ -1,13 +1,12 @@
 # vaadin-failover
 
-A proof-of-concept of a browser-side load-balancer. Currently, when the connection to
-the server is lost, the browser just redirects to http://vaadin.com . In the future,
-there could be a list of URLs of back-up/spare/other nodes to reconnect to.
+A proof-of-concept of a browser-side fail-over. If the connection to the primary server is lost,
+the browser will automatically redirect itself to a fallback/spare server of your choosing.
 
 Advantages:
 
 * No single point of failure
-* Incredibly easy setup
+* Incredibly easy setup - just add Maven dependency on this add-on and recompile your widgetset.
 * No server-side clustering needed
 * Servers are totally independent one from another, and may even use a mixture of server kinds,
   different versions of application, ...
@@ -17,9 +16,16 @@ Disadvantages:
 * Session is lost
 * If the main server dies, new clients cannot connect.
 * If the main server dies and user presses F5 in the browser, she will just get "Connection Refused".
-  This could be remedied by offline mode but this needs investigation.
+  This could be remedied by offline mode
 
+Future improvements:
 
+* Support multiple fallback servers to reconnect to
+* Prior reconnecting, ping the URL first, whether the spare server is actually alive.
+* A simple load-balancer, by selecting a random server from the list instead of always
+  choosing the primary one.
+* Offline mode of the bootstrap page, which will connect to the spare server even 
+  in case when the primary server is down.
 
 ## Development instructions 
 
