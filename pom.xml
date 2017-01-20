@@ -20,14 +20,14 @@
         <Vaadin-Addon>${project.artifactId}-${project.version}.jar</Vaadin-Addon>
     </properties>
     <scm>
-        <url>git://github.com/mvysny/vaadin-failover.git</url>
-        <connection>scm:git:git://github.com/mvysny/vaadin-failover.git</connection>
-        <developerConnection>scm:git:ssh://git@github.com:/mvysny/vaadin-failover.git</developerConnection>
+        <url>git://github.com/mvysny/failover-vaadin.git</url>
+        <connection>scm:git:git://github.com/mvysny/failover-vaadin.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com:/mvysny/failover-vaadin.git</developerConnection>
       <tag>HEAD</tag>
   </scm>
     <issueManagement>
         <system>GitHub</system>
-        <url>https://github.com/mvysny/vaadin-failover/issues</url>
+        <url>https://github.com/mvysny/failover-vaadin/issues</url>
     </issueManagement>
     <licenses>
         <license>

@@ -1,4 +1,4 @@
-# vaadin-failover
+# FailOver Vaadin Add-On
 
 A proof-of-concept of a browser-side fail-over. If the connection to the primary server is lost,
 the browser will automatically redirect itself to a fallback/spare server of your choosing.
