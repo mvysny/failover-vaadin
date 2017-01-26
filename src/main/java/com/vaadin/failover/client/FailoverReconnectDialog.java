@@ -1,21 +1,49 @@
 package com.vaadin.failover.client;
 
-import com.google.gwt.user.client.Window;
+import com.google.gwt.event.dom.client.ClickEvent;
+import com.google.gwt.event.dom.client.ClickHandler;
+import com.google.gwt.user.client.ui.Button;
+import com.google.gwt.user.client.ui.FlowPanel;
+import com.vaadin.client.ServerConnector;
 import com.vaadin.client.communication.DefaultReconnectDialog;
 
 /**
  * @author mavi
  */
 public class FailoverReconnectDialog extends DefaultReconnectDialog {
+    private Button reconnect;
+
+    private FlowPanel getRoot() {
+        return (FlowPanel) getWidget();
+    }
+
     @Override
     public void setReconnecting(boolean reconnecting) {
         super.setReconnecting(reconnecting);
         if (reconnecting) {
-            final String url = ac.getUIConnector().getResourceUrl("failoverUrl");
-            // We do not want the user to be able to navigate back - if the server would come up alive and the user back-navigated to it,
-            // the session in the new server would not be transferred back and thus is perceived as lost.
-            // Thus, Use GWT replace instead of assign - replace modifies the history and thus the user is not able to navigate back to the old server.
-            Window.Location.replace(url);
+            if (reconnect == null) {
+                reconnect = new Button("Reconnect", new ClickHandler() {
+                    @Override
+                    public void onClick(ClickEvent event) {
+                        final FailoverReconnectConnector reconnectConnector = getFailoverConnector();
+                        if (reconnectConnector == null) {
+                            throw new IllegalStateException("The reconnect is not configured. Have you attached the FailoverReconnectExtension to your UI?");
+                        }
+                        reconnectConnector.startReconnecting();
+                    }
+                });
+                reconnect.getElement().setAttribute("style", "margin-left: 10px");
+                getRoot().add(reconnect);
+            }
         }
+    }
+
+    private FailoverReconnectConnector getFailoverConnector() {
+        for (ServerConnector connector : ac.getUIConnector().getChildren()) {
+            if (connector instanceof FailoverReconnectConnector) {
+                return ((FailoverReconnectConnector) connector);
+            }
+        }
+        return null;
     }
 }
