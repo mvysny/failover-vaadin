@@ -17,16 +17,20 @@ public class BasicFailoverUsageUI extends AbstractTest {
         setDescription("A basic failover to another server. Just kill the server and click the button.");
     }
 
+    private final Label status = new Label();
+
     @Override
     public Component getTestComponent() {
         final List<String> urls = Arrays.asList("http://197.100.100.100/company", "http://197.100.100.101/company", "http://197.100.100.102/company", "https://vaadin.com/company");
         final FailoverReconnectExtension reconnectExtension = FailoverReconnectExtension.addTo(UI.getCurrent());
         reconnectExtension.setUrls(urls);
+        reconnectExtension.setStatusLabel(status);
         getReconnectDialogConfiguration().setDialogText("Can't connect to the server. The network may be down, or the server has crashed. Press the 'Reconnect' button to try to connect to fallback server.");
         final VerticalLayout vl = new VerticalLayout();
         vl.addComponent(new Label("Kill the server and click the button: the browser should automatically redirect to " + urls));
         vl.addComponent(new Button("Click me"));
         vl.addComponent(new Label("The button below will invoke the reconnect functionality directly, no need to kill the server."));
+        vl.addComponent(status);
         vl.addComponent(new Button("Click me", new Button.ClickListener() {
             @Override
             public void buttonClick(Button.ClickEvent event) {

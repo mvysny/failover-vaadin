@@ -12,6 +12,7 @@ import com.vaadin.client.communication.DefaultReconnectDialog;
  */
 public class FailoverReconnectDialog extends DefaultReconnectDialog {
     private Button reconnect;
+    private boolean registeredAsListener = false;
 
     private FlowPanel getRoot() {
         return (FlowPanel) getWidget();
@@ -25,17 +26,29 @@ public class FailoverReconnectDialog extends DefaultReconnectDialog {
                 reconnect = new Button("Reconnect", new ClickHandler() {
                     @Override
                     public void onClick(ClickEvent event) {
-                        final FailoverReconnectConnector reconnectConnector = getFailoverConnector();
-                        if (reconnectConnector == null) {
-                            throw new IllegalStateException("The reconnect is not configured. Have you attached the FailoverReconnectExtension to your UI?");
-                        }
-                        reconnectConnector.startReconnecting();
+                        startReconnecting();
                     }
                 });
                 reconnect.getElement().setAttribute("style", "margin-left: 10px");
                 getRoot().add(reconnect);
             }
         }
+    }
+
+    private void startReconnecting() {
+        final FailoverReconnectConnector reconnectConnector = getFailoverConnector();
+        if (reconnectConnector == null) {
+            throw new IllegalStateException("The reconnect is not configured. Have you attached the FailoverReconnectExtension to your UI?");
+        }
+        if (!registeredAsListener) {
+            reconnectConnector.statusListeners.add(new FailoverReconnectConnector.StatusListener() {
+                @Override
+                public void onStatus(String message) {
+                    label.setText(message);
+                }
+            });
+        }
+        reconnectConnector.startReconnecting();
     }
 
     private FailoverReconnectConnector getFailoverConnector() {

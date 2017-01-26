@@ -8,9 +8,12 @@ import com.google.gwt.http.client.Response;
 import com.google.gwt.user.client.Window;
 import com.vaadin.client.ServerConnector;
 import com.vaadin.client.extensions.AbstractExtensionConnector;
+import com.vaadin.client.ui.VLabel;
+import com.vaadin.client.ui.label.LabelConnector;
 import com.vaadin.failover.FailoverReconnectExtension;
 import com.vaadin.shared.ui.Connect;
 
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -18,6 +21,14 @@ import java.util.List;
  */
 @Connect(FailoverReconnectExtension.class)
 public class FailoverReconnectConnector extends AbstractExtensionConnector {
+
+    public interface StatusListener {
+        /**
+         * Called from {@link FailoverReconnectConnector#startReconnecting()} to update the reconnection state.
+         * @param message the reconnection state message, such as "Reconnecting to %0".
+         */
+        void onStatus(String message);
+    }
 
     public FailoverReconnectConnector() {
         registerRpc(FailoverReconnectClientRpc.class, new FailoverReconnectClientRpc() {
@@ -27,6 +38,8 @@ public class FailoverReconnectConnector extends AbstractExtensionConnector {
             }
         });
     }
+
+    public final LinkedList<StatusListener> statusListeners = new LinkedList<>();
 
     @Override
     protected void extend(ServerConnector serverConnector) {
@@ -39,22 +52,38 @@ public class FailoverReconnectConnector extends AbstractExtensionConnector {
         return (FailoverReconnectState) super.getState();
     }
 
+    /**
+     * Begins the reconnection process to another server.
+     */
     public void startReconnecting() {
         redirectToNextWorkingUrl(getState().urls);
     }
 
-    private void redirectToNextWorkingUrl(final List<String> urls) {
-        // @todo mavi make the order configurable: either round robin or random round robin
-        if (urls.isEmpty()) {
-            throw new IllegalArgumentException("Parameter urls: invalid value " + urls + ": empty");
+    private void notifyStatus(String message) {
+        final LabelConnector label = (LabelConnector) getState().statusLabel;
+        if (label != null) {
+            label.getWidget().setText(message);
         }
-        final String url = urls.get(0);
+        for (StatusListener listener : statusListeners) {
+            listener.onStatus(message);
+        }
+    }
+
+    private void redirectToNextWorkingUrl(final List<String> remainingURLs) {
+        // @todo mavi make the order configurable: either round robin or random round robin
+        if (remainingURLs.isEmpty()) {
+            notifyStatus("There are no spare servers to reconnect to in the FailoverReconnectExtension configuration");
+            return;
+        }
+        final String url = remainingURLs.get(0);
         GWT.log("Trying to connect to a backup server at " + url);
+        notifyStatus("Reconnecting to " + url);
         final RequestBuilder builder = new RequestBuilder(RequestBuilder.GET, url);
         builder.setCallback(new RequestCallback() {
             @Override
             public void onResponseReceived(Request request, Response response) {
                 GWT.log("Got response from " + url + ": " + response.getStatusCode() + " " + response.getStatusText() + ": " + response.getText());
+                notifyStatus(url + " is up, redirecting");
                 // any kind of response (e.g. 401 unauthorized) means that the server is alive. Redirect.
                 redirectTo(url);
             }
@@ -62,10 +91,10 @@ public class FailoverReconnectConnector extends AbstractExtensionConnector {
             @Override
             public void onError(Request request, Throwable exception) {
                 GWT.log("Server failed to reply: " + exception, exception);
-                final List<String> next = urls.subList(1, urls.size());
+                final List<String> next = remainingURLs.subList(1, remainingURLs.size());
                 if (next.isEmpty()) {
                     // @todo mavi add support for one-shot vs continuous checks
-                    Window.alert("Unfortunately I was unable to connect to any backup servers. Is the network up?");
+                    notifyStatus("Unfortunately I was unable to connect to any backup servers. Is the network up?");
                 } else {
                     redirectToNextWorkingUrl(next);
                 }

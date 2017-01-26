@@ -1,5 +1,6 @@
 package com.vaadin.failover.client;
 
+import com.vaadin.shared.Connector;
 import com.vaadin.shared.communication.SharedState;
 
 import java.util.ArrayList;
@@ -10,4 +11,5 @@ import java.util.List;
  */
 public class FailoverReconnectState extends SharedState {
     public List<String> urls = new ArrayList<>();
+    public Connector statusLabel;
 }
