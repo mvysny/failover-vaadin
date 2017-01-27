@@ -67,6 +67,8 @@ public class FailoverReconnectConnector extends AbstractExtensionConnector {
      */
     public final LinkedList<StatusListener> statusListeners = new LinkedList<>();
 
+    private boolean reconnectionOngoing = false;
+
     @Override
     protected void extend(ServerConnector serverConnector) {
         // this extension connector has no visual representation; it creates no divs nor other stuff.
@@ -80,9 +82,22 @@ public class FailoverReconnectConnector extends AbstractExtensionConnector {
     }
 
     /**
+     * Checks whether there is a reconnection process ongoing.
+     * @return true if we are currently reconnecting, false if not.
+     */
+    public boolean isReconnectionOngoing() {
+        return reconnectionOngoing;
+    }
+
+    /**
      * Begins the reconnection process to another server. As the reconnection process progresses, {@link #statusListeners} are notified.
+     * <p></p>
+     * If the reconnecting process is currently ongoing, this call does nothing.
      */
     public void startReconnecting() {
+        if (reconnectionOngoing) {
+            return;
+        }
         final List<String> urls = new ArrayList<>(getState().urls);
         if (getState().randomRobin) {
             shuffle(urls);
@@ -93,6 +108,7 @@ public class FailoverReconnectConnector extends AbstractExtensionConnector {
             }
             return;
         }
+        reconnectionOngoing = true;
         redirectToNextWorkingUrl(urls);
     }
 
@@ -109,6 +125,8 @@ public class FailoverReconnectConnector extends AbstractExtensionConnector {
      */
     private void redirectToNextWorkingUrl(final List<String> remainingURLs) {
         if (remainingURLs.isEmpty()) {
+            // no more URLs to reconnect. Maybe start anew?
+            reconnectionOngoing = false;
             if (getState().infinite) {
                 startReconnecting();
             } else {
@@ -118,9 +136,13 @@ public class FailoverReconnectConnector extends AbstractExtensionConnector {
             }
             return;
         }
+
+        // try to reconnect to the first URL from the list.
         final String url = remainingURLs.get(0);
         GWT.log("Trying to connect to a backup server at " + url);
         notifyStatus("Reconnecting to " + url);
+        // We don't want to simply redirect the browser to the URL straight away - that would kill us.
+        // First, ping the URL whether it is alive. If it is, only then do the browser redirect.
         final RequestBuilder builder = new RequestBuilder(RequestBuilder.GET, url);
         builder.setCallback(new RequestCallback() {
             @Override
@@ -157,6 +179,7 @@ public class FailoverReconnectConnector extends AbstractExtensionConnector {
     }
 
     private static <T> void shuffle(List<T> list) {
+        // GWT does not implement Collections.shuffle()
         final Random rnd = new Random();
         for (int i = list.size(); i > 1; i--)
             Collections.swap(list, i - 1, rnd.nextInt(i));
