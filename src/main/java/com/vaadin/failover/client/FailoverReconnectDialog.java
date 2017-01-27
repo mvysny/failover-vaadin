@@ -48,6 +48,7 @@ public class FailoverReconnectDialog extends DefaultReconnectDialog {
     }
 
     private void startReconnecting() {
+        reconnect.setVisible(false);
         final FailoverReconnectConnector reconnectConnector = getFailoverConnector();
         if (reconnectConnector == null) {
             throw new IllegalStateException("The reconnect is not configured. Have you attached the FailoverReconnectExtension to your UI?");
@@ -62,8 +63,10 @@ public class FailoverReconnectDialog extends DefaultReconnectDialog {
                 @Override
                 public void onGaveUp() {
                     label.setText("Failed to reconnect, all servers appear to have crashed");
+                    reconnect.setVisible(true);
                 }
             });
+            registeredAsListener = true;
         }
         reconnectConnector.startReconnecting();
     }
