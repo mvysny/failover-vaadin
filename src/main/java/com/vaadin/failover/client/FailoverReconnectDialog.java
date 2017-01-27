@@ -33,6 +33,8 @@ public class FailoverReconnectDialog extends DefaultReconnectDialog {
                 reconnect.getElement().setAttribute("style", "margin-left: 10px");
                 getRoot().add(reconnect);
             }
+        } else {
+            // @todo mavi cancel the reconnection process if ongoing! It seems we are back online.
         }
     }
 
