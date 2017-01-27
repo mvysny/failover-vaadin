@@ -34,10 +34,16 @@ public class BasicFailoverUsageUI extends AbstractTest {
         vl.addComponent(new Button("Click me"));
         vl.addComponent(new Label("The button below will invoke the reconnect functionality directly, no need to kill the server."));
         vl.addComponent(status);
-        vl.addComponent(new Button("Click me", new Button.ClickListener() {
+        vl.addComponent(new Button("Start reconnecting", new Button.ClickListener() {
             @Override
             public void buttonClick(Button.ClickEvent event) {
                 reconnectExtension.startReconnecting();
+            }
+        }));
+        vl.addComponent(new Button("Cancel reconnecting", new Button.ClickListener() {
+            @Override
+            public void buttonClick(Button.ClickEvent event) {
+                reconnectExtension.cancelReconnecting();
             }
         }));
         return vl;

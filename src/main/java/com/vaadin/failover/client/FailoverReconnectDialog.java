@@ -34,13 +34,14 @@ public class FailoverReconnectDialog extends DefaultReconnectDialog {
                 getRoot().add(reconnect);
             }
         } else {
-            // @todo mavi cancel the reconnection process if ongoing! It seems we are back online.
+            // cancel the reconnection process if ongoing! It seems we are back online.
+            getFailoverConnector().cancelReconnecting();
         }
     }
 
     @Override
     public void setText(String text) {
-        if (!registeredAsListener) {
+        if (!getFailoverConnector().isReconnectionOngoing()) {
             super.setText(text);
         } else {
             // the reconnection logic is running and the label is showing reconnection status.
@@ -52,9 +53,6 @@ public class FailoverReconnectDialog extends DefaultReconnectDialog {
     private void startReconnecting() {
         reconnect.setVisible(false);
         final FailoverReconnectConnector reconnectConnector = getFailoverConnector();
-        if (reconnectConnector == null) {
-            throw new IllegalStateException("The reconnect is not configured. Have you attached the FailoverReconnectExtension to your UI?");
-        }
         if (!registeredAsListener) {
             reconnectConnector.statusListeners.add(new FailoverReconnectConnector.StatusListener() {
                 @Override
@@ -79,6 +77,6 @@ public class FailoverReconnectDialog extends DefaultReconnectDialog {
                 return ((FailoverReconnectConnector) connector);
             }
         }
-        return null;
+        throw new IllegalStateException("The reconnect is not configured. Have you attached the FailoverReconnectExtension to your UI?");
     }
 }

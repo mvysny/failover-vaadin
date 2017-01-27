@@ -73,6 +73,13 @@ public class FailoverReconnectExtension extends AbstractExtension {
     }
 
     /**
+     * Cancels any ongoing reconnecting process. Only used for testing/development purposes.
+     */
+    void cancelReconnecting() {
+        getRpcProxy(FailoverReconnectClientRpc.class).cancelReconnecting();
+    }
+
+    /**
      * If true, then during the reconnecting phase, {@link #getUrls()} are pulled in random order. If false, {@link #getUrls()} are pulled
      * in exactly the same order as they appear in the {@link #getUrls()} list.
      * @return true if the reconnect should follow the random robin algorithm, false if round robin

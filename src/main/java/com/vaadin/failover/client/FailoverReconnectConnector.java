@@ -19,7 +19,7 @@ import java.util.*;
  * @author mavi
  */
 @Connect(FailoverReconnectExtension.class)
-public class FailoverReconnectConnector extends AbstractExtensionConnector {
+public class FailoverReconnectConnector extends AbstractExtensionConnector implements FailoverReconnectClientRpc {
 
     public interface StatusListener {
         /**
@@ -53,12 +53,7 @@ public class FailoverReconnectConnector extends AbstractExtensionConnector {
     }
 
     public FailoverReconnectConnector() {
-        registerRpc(FailoverReconnectClientRpc.class, new FailoverReconnectClientRpc() {
-            @Override
-            public void startReconnecting() {
-                FailoverReconnectConnector.this.startReconnecting();
-            }
-        });
+        registerRpc(FailoverReconnectClientRpc.class, this);
         statusListeners.add(new DebugLabelStatusListener());
     }
 
@@ -67,7 +62,8 @@ public class FailoverReconnectConnector extends AbstractExtensionConnector {
      */
     public final LinkedList<StatusListener> statusListeners = new LinkedList<>();
 
-    private boolean reconnectionOngoing = false;
+    @SuppressWarnings("GwtInconsistentSerializableClass")
+    private Reconnector reconnector = null;
 
     @Override
     protected void extend(ServerConnector serverConnector) {
@@ -86,18 +82,14 @@ public class FailoverReconnectConnector extends AbstractExtensionConnector {
      * @return true if we are currently reconnecting, false if not.
      */
     public boolean isReconnectionOngoing() {
-        return reconnectionOngoing;
+        return reconnector != null;
     }
 
-    /**
-     * Begins the reconnection process to another server. As the reconnection process progresses, {@link #statusListeners} are notified.
-     * <p></p>
-     * If the reconnecting process is currently ongoing, this call does nothing.
-     */
     public void startReconnecting() {
-        if (reconnectionOngoing) {
+        if (isReconnectionOngoing()) {
             return;
         }
+        // compute the list of reconnection URLs
         final List<String> urls = new ArrayList<>(getState().urls);
         if (getState().randomRobin) {
             shuffle(urls);
@@ -108,74 +100,36 @@ public class FailoverReconnectConnector extends AbstractExtensionConnector {
             }
             return;
         }
-        reconnectionOngoing = true;
-        redirectToNextWorkingUrl(urls);
-    }
-
-    private void notifyStatus(String message) {
-        for (StatusListener listener : statusListeners) {
-            listener.onStatus(message);
-        }
-    }
-
-    /**
-     * Tries to connect to the first URL in the list. If that fails, calls itself recursively, with the first URL omitted.
-     * Fires notification messages on {@link #statusListeners}.
-     * @param remainingURLs the URLs to probe, not null, may be empty.
-     */
-    private void redirectToNextWorkingUrl(final List<String> remainingURLs) {
-        if (remainingURLs.isEmpty()) {
-            // no more URLs to reconnect. Maybe start anew?
-            reconnectionOngoing = false;
-            if (getState().infinite) {
-                startReconnecting();
-            } else {
+        // start the reconnector process
+        reconnector = new Reconnector(new StatusListener() {
+            @Override
+            public void onStatus(String message) {
                 for (StatusListener listener : statusListeners) {
-                    listener.onGaveUp();
+                    listener.onStatus(message);
                 }
             }
-            return;
-        }
-
-        // try to reconnect to the first URL from the list.
-        final String url = remainingURLs.get(0);
-        GWT.log("Trying to connect to a backup server at " + url);
-        notifyStatus("Reconnecting to " + url);
-        // We don't want to simply redirect the browser to the URL straight away - that would kill us.
-        // First, ping the URL whether it is alive. If it is, only then do the browser redirect.
-        final RequestBuilder builder = new RequestBuilder(RequestBuilder.GET, url);
-        builder.setCallback(new RequestCallback() {
-            @Override
-            public void onResponseReceived(Request request, Response response) {
-                GWT.log("Got response from " + url + ": " + response.getStatusCode() + " " + response.getStatusText() + ": " + response.getText());
-                notifyStatus(url + " is up, redirecting");
-                // any kind of response (e.g. 401 unauthorized) means that the server is alive. Redirect.
-                redirectTo(url);
-            }
 
             @Override
-            public void onError(Request request, Throwable exception) {
-                GWT.log("Server failed to reply: " + exception, exception);
-                final List<String> next = remainingURLs.subList(1, remainingURLs.size());
-                redirectToNextWorkingUrl(next);
+            public void onGaveUp() {
+                // null the reconnector so that we can eventually start again
+                reconnector = null;
+                if (getState().infinite) {
+                    startReconnecting();
+                } else {
+                    for (StatusListener listener : statusListeners) {
+                        listener.onGaveUp();
+                    }
+                }
             }
-        });
-        builder.setTimeoutMillis(Math.max(0, getState().pingMillis));
-        builder.setHeader("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8");
-        try {
-            GWT.log("Trying to ping backup server " + url);
-            builder.send();
-        } catch (Exception e) {
-            GWT.log("Failed to ping server, redirecting blindly to " + url + ": " + e, e);
-            redirectTo(url);
-        }
+        }, getState().pingMillis);
+        reconnector.start(urls);
     }
 
-    private void redirectTo(String url) {
-        // We do not want the user to be able to navigate back - if the server would come up alive and the user back-navigated to it,
-        // the session in the new server would not be transferred back and thus is perceived as lost.
-        // Thus, Use GWT replace instead of assign - replace modifies the history and thus the user is not able to navigate back to the old server.
-        Window.Location.replace(url);
+    public void cancelReconnecting() {
+        if (reconnector != null) {
+            reconnector.cancel();
+            reconnector = null;
+        }
     }
 
     private static <T> void shuffle(List<T> list) {
