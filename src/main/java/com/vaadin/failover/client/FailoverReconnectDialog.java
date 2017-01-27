@@ -1,5 +1,6 @@
 package com.vaadin.failover.client;
 
+import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.user.client.ui.Button;
@@ -35,6 +36,17 @@ public class FailoverReconnectDialog extends DefaultReconnectDialog {
         }
     }
 
+    @Override
+    public void setText(String text) {
+        if (!registeredAsListener) {
+            super.setText(text);
+        } else {
+            // the reconnection logic is running and the label is showing reconnection status.
+            // suppress any attempts to overwrite the reconnection status but log them.
+            GWT.log("FailoverReconnectDialog: Suppressed message: " + text);
+        }
+    }
+
     private void startReconnecting() {
         final FailoverReconnectConnector reconnectConnector = getFailoverConnector();
         if (reconnectConnector == null) {
@@ -45,6 +57,11 @@ public class FailoverReconnectDialog extends DefaultReconnectDialog {
                 @Override
                 public void onStatus(String message) {
                     label.setText(message);
+                }
+
+                @Override
+                public void onGaveUp() {
+                    label.setText("Failed to reconnect, all servers appear to have crashed");
                 }
             });
         }

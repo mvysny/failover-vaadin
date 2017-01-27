@@ -8,15 +8,14 @@ import com.google.gwt.http.client.Response;
 import com.google.gwt.user.client.Window;
 import com.vaadin.client.ServerConnector;
 import com.vaadin.client.extensions.AbstractExtensionConnector;
-import com.vaadin.client.ui.VLabel;
 import com.vaadin.client.ui.label.LabelConnector;
 import com.vaadin.failover.FailoverReconnectExtension;
 import com.vaadin.shared.ui.Connect;
 
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 /**
+ * Implements the reconnection logic. {@link FailoverReconnectDialog} expects this extension to be attached to the UI class.
  * @author mavi
  */
 @Connect(FailoverReconnectExtension.class)
@@ -28,6 +27,29 @@ public class FailoverReconnectConnector extends AbstractExtensionConnector {
          * @param message the reconnection state message, such as "Reconnecting to %0".
          */
         void onStatus(String message);
+
+        /**
+         * The reconnection process iterated all URLs and gave up since {@link FailoverReconnectState#infinite} is false.
+         */
+        void onGaveUp();
+    }
+
+    private class DebugLabelStatusListener implements StatusListener {
+        @Override
+        public void onStatus(String message) {
+            final LabelConnector label = (LabelConnector) getState().statusLabel;
+            if (label != null) {
+                label.getWidget().setText(message);
+            }
+        }
+
+        @Override
+        public void onGaveUp() {
+            final LabelConnector label = (LabelConnector) getState().statusLabel;
+            if (label != null) {
+                label.getWidget().setText("Failed to reconnect, all servers appear to have crashed");
+            }
+        }
     }
 
     public FailoverReconnectConnector() {
@@ -37,14 +59,19 @@ public class FailoverReconnectConnector extends AbstractExtensionConnector {
                 FailoverReconnectConnector.this.startReconnecting();
             }
         });
+        statusListeners.add(new DebugLabelStatusListener());
     }
 
+    /**
+     * When {@link #startReconnecting()} is called, these listeners are notified for status updates.
+     */
     public final LinkedList<StatusListener> statusListeners = new LinkedList<>();
 
     @Override
     protected void extend(ServerConnector serverConnector) {
-        // nothing to do, really. This connector just serves as a means to transfer state so that the
-        // FailoverReconnectDialog can read the state and configure itself.
+        // this extension connector has no visual representation; it creates no divs nor other stuff.
+        // Its state serves to transfer the reconnect process configuration to the client.
+        // It also houses the reconnection logic, which is then used by FailoverReconnectDialog.
     }
 
     @Override
@@ -53,26 +80,42 @@ public class FailoverReconnectConnector extends AbstractExtensionConnector {
     }
 
     /**
-     * Begins the reconnection process to another server.
+     * Begins the reconnection process to another server. As the reconnection process progresses, {@link #statusListeners} are notified.
      */
     public void startReconnecting() {
-        redirectToNextWorkingUrl(getState().urls);
+        final List<String> urls = new ArrayList<>(getState().urls);
+        if (getState().randomRobin) {
+            shuffle(urls);
+        }
+        if (urls.isEmpty()) {
+            for (StatusListener listener : statusListeners) {
+                listener.onGaveUp();
+            }
+            return;
+        }
+        redirectToNextWorkingUrl(urls);
     }
 
     private void notifyStatus(String message) {
-        final LabelConnector label = (LabelConnector) getState().statusLabel;
-        if (label != null) {
-            label.getWidget().setText(message);
-        }
         for (StatusListener listener : statusListeners) {
             listener.onStatus(message);
         }
     }
 
+    /**
+     * Tries to connect to the first URL in the list. If that fails, calls itself recursively, with the first URL omitted.
+     * Fires notification messages on {@link #statusListeners}.
+     * @param remainingURLs the URLs to probe, not null, may be empty.
+     */
     private void redirectToNextWorkingUrl(final List<String> remainingURLs) {
-        // @todo mavi make the order configurable: either round robin or random round robin
         if (remainingURLs.isEmpty()) {
-            notifyStatus("There are no spare servers to reconnect to in the FailoverReconnectExtension configuration");
+            if (getState().infinite) {
+                startReconnecting();
+            } else {
+                for (StatusListener listener : statusListeners) {
+                    listener.onGaveUp();
+                }
+            }
             return;
         }
         final String url = remainingURLs.get(0);
@@ -92,15 +135,10 @@ public class FailoverReconnectConnector extends AbstractExtensionConnector {
             public void onError(Request request, Throwable exception) {
                 GWT.log("Server failed to reply: " + exception, exception);
                 final List<String> next = remainingURLs.subList(1, remainingURLs.size());
-                if (next.isEmpty()) {
-                    // @todo mavi add support for one-shot vs continuous checks
-                    notifyStatus("Unfortunately I was unable to connect to any backup servers. Is the network up?");
-                } else {
-                    redirectToNextWorkingUrl(next);
-                }
+                redirectToNextWorkingUrl(next);
             }
         });
-        builder.setTimeoutMillis(10000); // 10 seconds, @todo mavi make this configurable
+        builder.setTimeoutMillis(Math.max(0, getState().pingMillis));
         builder.setHeader("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8");
         try {
             GWT.log("Trying to ping backup server " + url);
@@ -116,5 +154,11 @@ public class FailoverReconnectConnector extends AbstractExtensionConnector {
         // the session in the new server would not be transferred back and thus is perceived as lost.
         // Thus, Use GWT replace instead of assign - replace modifies the history and thus the user is not able to navigate back to the old server.
         Window.Location.replace(url);
+    }
+
+    private static <T> void shuffle(List<T> list) {
+        final Random rnd = new Random();
+        for (int i = list.size(); i > 1; i--)
+            Collections.swap(list, i - 1, rnd.nextInt(i));
     }
 }

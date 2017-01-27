@@ -57,14 +57,75 @@ public class FailoverReconnectExtension extends AbstractExtension {
     }
 
     /**
-     * Sets the "status" label. When {@link #startReconnecting()} is called, this label will show the
-     * @param statusLabel
+     * Sets the "status" label. When {@link #startReconnecting()} is called, this label will gradually show the status.
+     * Only used for testing/development purposes.
+     * @param statusLabel the label to show the progress, may be null.
      */
     void setStatusLabel(Label statusLabel) {
         getState().statusLabel = statusLabel;
     }
 
+    /**
+     * Begins the reconnecting process. Only used for testing/development purposes.
+     */
     void startReconnecting() {
         getRpcProxy(FailoverReconnectClientRpc.class).startReconnecting();
+    }
+
+    /**
+     * If true, then during the reconnecting phase, {@link #getUrls()} are pulled in random order. If false, {@link #getUrls()} are pulled
+     * in exactly the same order as they appear in the {@link #getUrls()} list.
+     * @return true if the reconnect should follow the random robin algorithm, false if round robin
+     */
+    public boolean isRandomRobin() {
+       return getState(false).randomRobin;
+    }
+
+    /**
+     * If true, then during the reconnecting phase, {@link #getUrls()} are pulled in random order. If false, {@link #getUrls()} are pulled
+     * in exactly the same order as they appear in the {@link #getUrls()} list.
+     * @param randomRobin if the reconnect should follow the random robin algorithm, false if round robin
+     */
+    public void setRandomRobin(boolean randomRobin) {
+        getState().randomRobin = randomRobin;
+    }
+
+    /**
+     * If true (the default), the reconnection process is endless - it will forever try to connect to {@link #getUrls()}. If false,
+     * each URL from {@link #getUrls()} is tried only once. After that, the reconnection dialog gives up (and shows "Failed to reconnect, all servers appear to have crashed").
+     * @return true if the reconnect process should be repeated indefinitely, false if not.
+     */
+    public boolean isInfinite() {
+        return getState(false).infinite;
+    }
+
+    /**
+     * If true (the default), the reconnection process is endless - it will forever try to connect to {@link #getUrls()}. If false,
+     * each URL from {@link #getUrls()} is tried only once. After that, the reconnection dialog gives up (and shows "Failed to reconnect, all servers appear to have crashed").
+     * @param infinite true if the reconnect process should be repeated indefinitely, false if not.
+     */
+    public void setInfinite(boolean infinite) {
+        getState().infinite = infinite;
+    }
+
+    /**
+     * When reconnecting, the URL is probed first, to check whether it is actually alive. If the server does not respond
+     * within the defined period, it is considered dead and the reconnect logic moves to the next URL.
+     * @return The value in milliseconds; the default is 10 seconds.
+     */
+    public int getPingMillis() {
+        return getState(false).pingMillis;
+    }
+
+    /**
+     * When reconnecting, the URL is probed first, to check whether it is actually alive. If the server does not respond
+     * within the defined period, it is considered dead and the reconnect logic moves to the next URL.
+     * @param pingMillis The value in milliseconds; the default is 10 seconds. Must not be negative.
+     */
+    public void setPingMillis(int pingMillis) {
+        if (pingMillis < 0) {
+            throw new IllegalArgumentException("Parameter pingMillis: invalid value " + pingMillis + ": must be 0 or greater");
+        }
+        getState().pingMillis = pingMillis;
     }
 }
