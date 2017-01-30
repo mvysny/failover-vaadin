@@ -9,7 +9,7 @@ import com.vaadin.shared.ui.Connect;
 import java.util.*;
 
 /**
- * Implements the reconnection logic. {@link FailoverReconnectDialog} expects this extension to be attached to the UI class.
+ * Implements the fail-over logic. {@link FailoverReconnectDialog} expects this extension to be attached to the UI class.
  * @author mavi
  */
 @Connect(FailoverReconnectExtension.class)

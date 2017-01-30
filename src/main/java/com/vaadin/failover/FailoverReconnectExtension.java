@@ -9,13 +9,18 @@ import com.vaadin.ui.UI;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
- * The extension which handles the reconnection. To use this extension, perform the following steps:
+ * The extension which handles the failover. To use this extension, perform the following steps:
  * <ul>
  *     <li>in your {@link UI#init(VaadinRequest)} call {@link #addTo(UI)}</li>
  *     <li>set the redirect URLs via {@link #setUrls(List)}</li>
+ *     <li>Optionally configure other aspects of the fail-over process.</li>
+ *     <li>Most important, include this widgetset in your widgetset</li>
  * </ul>
+ * Once you include this widgetset, the standard Vaadin Reconnect dialog will be extended to also perform the FailOver logic.
+ * Once the server crashes, the user will be able to press the "Try Spare Servers" button which will initiate the failover.
  * @author mavi
  */
 public class FailoverReconnectExtension extends AbstractExtension {
@@ -134,5 +139,38 @@ public class FailoverReconnectExtension extends AbstractExtension {
             throw new IllegalArgumentException("Parameter pingMillis: invalid value " + pingMillis + ": must be 0 or greater");
         }
         getState().pingMillis = pingMillis;
+    }
+
+    /**
+     * The configurable caption of the "Try Spare Servers" button. Defaults to "Try Spare Servers".
+     * @return the caption, not null.
+     */
+    public String getTrySpareServersButtonCaption() {
+        return getState(false).trySpareServersButtonCaption;
+    }
+
+    /**
+     * The configurable caption of the "Try Spare Servers" button. Defaults to "Try Spare Servers".
+     * @param trySpareServersButtonCaption
+     */
+    public void setTrySpareServersButtonCaption(String trySpareServersButtonCaption) {
+        Objects.requireNonNull(trySpareServersButtonCaption);
+        getState().trySpareServersButtonCaption = trySpareServersButtonCaption;
+    }
+
+    /**
+     * If true, the user is able to cancel the process of finding spare servers (fail-over). Defaults to true.
+     * @return false if there will not be the Cancel button visible.
+     */
+    public boolean isAllowCancel() {
+        return getState(false).allowCancel;
+    }
+
+    /**
+     * If true, the user is able to cancel the process of finding spare servers (fail-over). Defaults to true.
+     * @param allowCancel false if there will not be the Cancel button visible.
+     */
+    public void setAllowCancel(boolean allowCancel) {
+        getState().allowCancel = allowCancel;
     }
 }
