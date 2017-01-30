@@ -1,11 +1,5 @@
 package com.vaadin.failover.client;
 
-import com.google.gwt.core.client.GWT;
-import com.google.gwt.http.client.Request;
-import com.google.gwt.http.client.RequestBuilder;
-import com.google.gwt.http.client.RequestCallback;
-import com.google.gwt.http.client.Response;
-import com.google.gwt.user.client.Window;
 import com.vaadin.client.ServerConnector;
 import com.vaadin.client.extensions.AbstractExtensionConnector;
 import com.vaadin.client.ui.label.LabelConnector;
@@ -23,7 +17,7 @@ public class FailoverReconnectConnector extends AbstractExtensionConnector imple
 
     public interface StatusListener {
         /**
-         * Called from {@link FailoverReconnectConnector#startReconnecting()} to update the reconnection state.
+         * Called from {@link FailoverReconnectConnector#startFailOver()} to update the reconnection state.
          * @param message the reconnection state message, such as "Reconnecting to %0".
          */
         void onStatus(String message);
@@ -58,12 +52,12 @@ public class FailoverReconnectConnector extends AbstractExtensionConnector imple
     }
 
     /**
-     * When {@link #startReconnecting()} is called, these listeners are notified for status updates.
+     * When {@link #startFailOver()} is called, these listeners are notified for status updates.
      */
     public final LinkedList<StatusListener> statusListeners = new LinkedList<>();
 
     @SuppressWarnings("GwtInconsistentSerializableClass")
-    private Reconnector reconnector = null;
+    private LiveUrlFinder liveUrlFinder = null;
 
     @Override
     protected void extend(ServerConnector serverConnector) {
@@ -82,10 +76,11 @@ public class FailoverReconnectConnector extends AbstractExtensionConnector imple
      * @return true if we are currently reconnecting, false if not.
      */
     public boolean isReconnectionOngoing() {
-        return reconnector != null;
+        return liveUrlFinder != null;
     }
 
-    public void startReconnecting() {
+    @Override
+    public void startFailOver() {
         if (isReconnectionOngoing()) {
             return;
         }
@@ -100,8 +95,8 @@ public class FailoverReconnectConnector extends AbstractExtensionConnector imple
             }
             return;
         }
-        // start the reconnector process
-        reconnector = new Reconnector(new StatusListener() {
+        // start the liveUrlFinder process
+        liveUrlFinder = new LiveUrlFinder(new StatusListener() {
             @Override
             public void onStatus(String message) {
                 for (StatusListener listener : statusListeners) {
@@ -111,10 +106,10 @@ public class FailoverReconnectConnector extends AbstractExtensionConnector imple
 
             @Override
             public void onGaveUp() {
-                // null the reconnector so that we can eventually start again
-                reconnector = null;
+                // null the liveUrlFinder so that we can eventually start again
+                liveUrlFinder = null;
                 if (getState().infinite) {
-                    startReconnecting();
+                    startFailOver();
                 } else {
                     for (StatusListener listener : statusListeners) {
                         listener.onGaveUp();
@@ -122,13 +117,14 @@ public class FailoverReconnectConnector extends AbstractExtensionConnector imple
                 }
             }
         }, getState().pingMillis);
-        reconnector.start(urls);
+        liveUrlFinder.start(urls);
     }
 
-    public void cancelReconnecting() {
-        if (reconnector != null) {
-            reconnector.cancel();
-            reconnector = null;
+    @Override
+    public void cancelFailOver() {
+        if (liveUrlFinder != null) {
+            liveUrlFinder.cancel();
+            liveUrlFinder = null;
         }
     }
 

@@ -10,18 +10,39 @@ import com.google.gwt.user.client.Window;
 import java.util.List;
 
 /**
- * Performs one reconnection cycle. Cancelable. Can be started, then canceled. Once canceled, cannot be started again.
+ * Performs one fail-over cycle over given list of URLs. Every URL is pinged first, whether it is actually live.
+ * <p></p>
+ * Cancelable. Can be started, then canceled. Once canceled, cannot be started again.
  * @author mavi
  */
-final class Reconnector {
-
+final class LiveUrlFinder {
+    /**
+     * Notifies this listener of finder's current status.
+     */
     private final FailoverReconnectConnector.StatusListener listener;
+    /**
+     * If the URL does not respond within this amount of millis, it is considered dead and the finder moves onto the next URL.
+     */
     private final int pingMillis;
+    /**
+     * True if {@link #start(List)} has been called.
+     */
     private boolean started = false;
+    /**
+     * True if {@link #cancel()} has been called.
+     */
     private boolean canceled = false;
+    /**
+     * Currently ongoing probe. Used to cancel+cleanup the current request when the {@link #cancel()} is called.
+     */
     private Request ongoingRequest;
 
-    public Reconnector(FailoverReconnectConnector.StatusListener listener, int pingMillis) {
+    /**
+     * Creates the finder.
+     * @param listener
+     * @param pingMillis
+     */
+    public LiveUrlFinder(FailoverReconnectConnector.StatusListener listener, int pingMillis) {
         this.listener = listener;
         if (listener == null) {
             throw new IllegalArgumentException("Parameter listener: invalid value " + listener + ": must not be null");
@@ -32,7 +53,11 @@ final class Reconnector {
         }
     }
 
-    public void start(final List<String> remainingURLs) {
+    /**
+     * Probes given list of URLs and redirects the browser automatically to the first live URL.
+     * @param urls the URLs to probe, in this order.
+     */
+    public void start(final List<String> urls) {
         if (canceled) {
             throw new IllegalStateException("Invalid state: canceled");
         }
@@ -40,7 +65,7 @@ final class Reconnector {
             throw new IllegalStateException("Invalid state: already started");
         }
         started = true;
-        redirectToNextWorkingUrl(remainingURLs);
+        redirectToNextWorkingUrl(urls);
     }
 
     /**

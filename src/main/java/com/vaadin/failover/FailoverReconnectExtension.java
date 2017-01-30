@@ -57,7 +57,7 @@ public class FailoverReconnectExtension extends AbstractExtension {
     }
 
     /**
-     * Sets the "status" label. When {@link #startReconnecting()} is called, this label will gradually show the status.
+     * Sets the "status" label. When {@link #startFailOver()} is called, this label will gradually show the status.
      * Only used for testing/development purposes.
      * @param statusLabel the label to show the progress, may be null.
      */
@@ -66,17 +66,17 @@ public class FailoverReconnectExtension extends AbstractExtension {
     }
 
     /**
-     * Begins the reconnecting process. Only used for testing/development purposes.
+     * Begins the failover process. Only used for testing/development purposes.
      */
-    void startReconnecting() {
-        getRpcProxy(FailoverReconnectClientRpc.class).startReconnecting();
+    void startFailOver() {
+        getRpcProxy(FailoverReconnectClientRpc.class).startFailOver();
     }
 
     /**
-     * Cancels any ongoing reconnecting process. Only used for testing/development purposes.
+     * Cancels any ongoing failover process. Only used for testing/development purposes.
      */
-    void cancelReconnecting() {
-        getRpcProxy(FailoverReconnectClientRpc.class).cancelReconnecting();
+    void cancelFailOver() {
+        getRpcProxy(FailoverReconnectClientRpc.class).cancelFailOver();
     }
 
     /**

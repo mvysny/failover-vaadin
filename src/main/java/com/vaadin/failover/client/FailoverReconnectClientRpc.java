@@ -7,13 +7,13 @@ import com.vaadin.shared.communication.ClientRpc;
  */
 public interface FailoverReconnectClientRpc extends ClientRpc {
     /**
-     * Begins the reconnection process to another server. As the reconnection process progresses, status listeners are notified.
+     * Begins the fail-over process. As the fail-over process progresses, status listeners are notified.
      * <p></p>
-     * If the reconnecting process is currently ongoing, this call does nothing.
+     * If the failover process is currently ongoing, this call does nothing.
      */
-    void startReconnecting();
+    void startFailOver();
     /**
-     * Cancels the currently ongoing reconnection process. Does nothing if there is no reconnection process ongoing.
+     * Cancels the currently ongoing failover process. Does nothing if there is no failover process ongoing.
      */
-    void cancelReconnecting();
+    void cancelFailOver();
 }

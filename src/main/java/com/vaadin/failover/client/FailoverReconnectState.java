@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * Configures the FailOver dialog. Every field is set to a most reasonable defaults.
  * @author mavi
  */
 public class FailoverReconnectState extends SharedState {
@@ -37,4 +38,14 @@ public class FailoverReconnectState extends SharedState {
      * The value is in milliseconds; the default is 10 seconds.
      */
     public int pingMillis = 10000;
+
+    /**
+     * The configurable caption of the "Try Spare Servers" button. Defaults to "Try Spare Servers".
+     */
+    public String trySpareServersButtonCaption = "Try Spare Servers";
+
+    /**
+     * If true, the user is able to cancel the process of finding spare servers (fail-over). Defaults to true.
+     */
+    public boolean allowCancel = true;
 }
