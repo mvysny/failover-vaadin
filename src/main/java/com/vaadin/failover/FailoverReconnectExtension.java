@@ -46,9 +46,15 @@ public class FailoverReconnectExtension extends AbstractExtension {
 
     /**
      * Sets the list of URLs to reconnect to. You can add all URLs here (including the main server URL). By default this list is empty.
-     * @param urls the list of URLs, not null, may be empty.
+     * @param urls the list of URLs, not null, may be empty. All URLs must start with http:// or https://
      */
     public void setUrls(List<String> urls) {
+        for (String url : urls) {
+            if (!url.startsWith("http://") && !url.startsWith("https://")) {
+                // Chrome will complain regarding same origin policy if the URL has no proper prefix.
+                throw new IllegalArgumentException("Parameter urls: invalid value " + url + ": the URL must start either with http:// or https://");
+            }
+        }
         getState().urls.clear();
         getState().urls.addAll(urls);
     }
