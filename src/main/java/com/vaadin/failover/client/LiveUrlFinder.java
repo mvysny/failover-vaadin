@@ -101,8 +101,15 @@ final class LiveUrlFinder {
         final String url = remainingURLs.get(0);
         Utils.jslog("Trying to ping server at " + url);
         listener.onStatus("Trying " + url);
-        // We don't want to simply redirect the browser to the URL straight away - that would kill us.
+
+        // We don't want to simply redirect the browser to the URL straight away - what if the fallback server is down as well?
         // First, ping the URL whether it is alive. If it is, only then do the browser redirect.
+
+        // unfortunately, using the preflights OPTIONS method won't fool the browser - it still shows that
+        // XMLHttpRequest cannot load http://xyz/. Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource. Origin 'http://localhost:9998' is therefore not allowed access. The response had HTTP status code 405.
+        // so we can't use this method to differentiate between net:: issue and CORS issue.
+//        final RequestBuilder builder = new RequestBuilder("OPTIONS", url) {};
+
         final RequestBuilder builder = new RequestBuilder(RequestBuilder.GET, url);
         builder.setCallback(new RequestCallback() {
             @Override
@@ -111,9 +118,12 @@ final class LiveUrlFinder {
                     return;
                 }
                 ongoingRequest = null;
-                Utils.jslog("Got response from " + url + ": " + response.getStatusCode() + " " + response.getStatusText() + ": " + response.getText());
+                Utils.jslog("Got response from " + url + ": " + response.getStatusCode() + " " + response.getStatusText() + ": " + response.getText() + " hu " + response.getHeadersAsString());
                 if (response.getStatusCode() == 0) {
-                    // Chrome reports net::ERR_CONNECTION_REFUSED like this. This means that the server is down and we'll have to try the next one.
+                    // Chrome reports all net:: issues like net::ERR_CONNECTION_REFUSED or net::ERR_NAME_NOT_RESOLVED like this.
+                    // This usually means that the server is down and we'll have to try the next one.
+                    // The trouble with this approach is that the CORS error is reported this way as well.
+                    // Thus, to differentiate
                     tryNext();
                     return;
                 }
