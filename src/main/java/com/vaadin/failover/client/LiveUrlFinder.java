@@ -100,7 +100,7 @@ final class LiveUrlFinder {
         // try to reconnect to the first URL from the list.
         final String url = remainingURLs.get(0);
         GWT.log("Trying to connect to a backup server at " + url);
-        listener.onStatus("Reconnecting to " + url);
+        listener.onStatus("Trying " + url);
         // We don't want to simply redirect the browser to the URL straight away - that would kill us.
         // First, ping the URL whether it is alive. If it is, only then do the browser redirect.
         final RequestBuilder builder = new RequestBuilder(RequestBuilder.GET, url);

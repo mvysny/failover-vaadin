@@ -1,5 +1,6 @@
 package com.vaadin.failover.client;
 
+import com.google.gwt.user.client.Timer;
 import com.vaadin.client.ServerConnector;
 import com.vaadin.client.extensions.AbstractExtensionConnector;
 import com.vaadin.client.ui.label.LabelConnector;
@@ -56,6 +57,13 @@ public class FailoverReconnectConnector extends AbstractExtensionConnector imple
      */
     public final LinkedList<StatusListener> statusListeners = new LinkedList<>();
 
+    /**
+     * Only applicable when {@link FailoverReconnectState#infinite} is true.
+     * When none of the URLs are up, back off a bit before trying again.
+     * This is especially useful after getting a rapid stream of "connection refused" from the browser.
+     */
+    private com.google.gwt.user.client.Timer startOverBackOffTimer = null;
+
     @SuppressWarnings("GwtInconsistentSerializableClass")
     private LiveUrlFinder liveUrlFinder = null;
 
@@ -106,10 +114,22 @@ public class FailoverReconnectConnector extends AbstractExtensionConnector imple
 
             @Override
             public void onGaveUp() {
+                // we ran out of URLs.
                 // null the liveUrlFinder so that we can eventually start again
                 liveUrlFinder = null;
                 if (getState().infinite) {
-                    startFailOver();
+                    // repeat the whole process but back off a bit
+                    // useful after getting a rapid stream of "connection refused" from the browser.
+                    startOverBackOffTimer = new Timer() {
+                        @Override
+                        public void run() {
+                            startFailOver();
+                        }
+                    };
+                    startOverBackOffTimer.schedule(3000);
+                    for (StatusListener listener : statusListeners) {
+                        listener.onStatus("All servers appear to be down, retrying");
+                    }
                 } else {
                     for (StatusListener listener : statusListeners) {
                         listener.onGaveUp();
@@ -125,6 +145,10 @@ public class FailoverReconnectConnector extends AbstractExtensionConnector imple
         if (liveUrlFinder != null) {
             liveUrlFinder.cancel();
             liveUrlFinder = null;
+        }
+        if (startOverBackOffTimer != null) {
+            startOverBackOffTimer.cancel();
+            startOverBackOffTimer = null;
         }
     }
 

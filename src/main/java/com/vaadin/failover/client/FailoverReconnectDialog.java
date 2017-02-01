@@ -67,7 +67,7 @@ public class FailoverReconnectDialog extends DefaultReconnectDialog {
 
                     @Override
                     public void onGaveUp() {
-                        label.setText("Failed to reconnect, all servers appear to have crashed");
+                        label.setText("All servers appear to have crashed");
                         setReconnectButtonVisible(true);
                     }
                 });
@@ -109,6 +109,6 @@ public class FailoverReconnectDialog extends DefaultReconnectDialog {
                 return ((FailoverReconnectConnector) connector);
             }
         }
-        throw new IllegalStateException("The reconnect is not configured. Have you attached the FailoverReconnectExtension to your UI?");
+        throw new IllegalStateException("The Failover Add-On Extension is not present in the UI. Have you attached the FailoverReconnectExtension to your UI?");
     }
 }
