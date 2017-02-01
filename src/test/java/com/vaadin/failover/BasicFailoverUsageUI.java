@@ -28,7 +28,7 @@ public class BasicFailoverUsageUI extends AbstractTest {
         reconnectExtension.setInfinite(false);
         reconnectExtension.setRandomRobin(false);
         reconnectExtension.setPingMillis(2000);
-        getReconnectDialogConfiguration().setDialogText("Can't connect to the server. The network may be down, or the server has crashed. Press the 'Reconnect' button to try to connect to fallback server.");
+        getReconnectDialogConfiguration().setDialogText("Can't connect to the server. The network may be down, or the server has crashed. Press the 'Try Spare Servers' button to try to connect to fallback server.");
         final VerticalLayout vl = new VerticalLayout();
         vl.addComponent(new Label("Kill the server and click the button: the browser should automatically redirect to " + urls));
         vl.addComponent(new Button("Click me"));
