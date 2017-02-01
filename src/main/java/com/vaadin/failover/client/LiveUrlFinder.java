@@ -99,7 +99,7 @@ final class LiveUrlFinder {
 
         // try to reconnect to the first URL from the list.
         final String url = remainingURLs.get(0);
-        GWT.log("Trying to connect to a backup server at " + url);
+        Utils.jslog("Trying to ping server at " + url);
         listener.onStatus("Trying " + url);
         // We don't want to simply redirect the browser to the URL straight away - that would kill us.
         // First, ping the URL whether it is alive. If it is, only then do the browser redirect.
@@ -111,7 +111,7 @@ final class LiveUrlFinder {
                     return;
                 }
                 ongoingRequest = null;
-                GWT.log("Got response from " + url + ": " + response.getStatusCode() + " " + response.getStatusText() + ": " + response.getText());
+                Utils.jslog("Got response from " + url + ": " + response.getStatusCode() + " " + response.getStatusText() + ": " + response.getText());
                 if (response.getStatusCode() == 0) {
                     // Chrome reports net::ERR_CONNECTION_REFUSED like this. This means that the server is down and we'll have to try the next one.
                     tryNext();
@@ -133,17 +133,16 @@ final class LiveUrlFinder {
                     return;
                 }
                 ongoingRequest = null;
-                GWT.log("Server failed to reply: " + exception, exception);
+                Utils.jslog("Server failed to reply", exception);
                 tryNext();
             }
         });
         builder.setTimeoutMillis(pingMillis);
         builder.setHeader("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8");
         try {
-            GWT.log("Trying to ping backup server " + url);
             ongoingRequest = builder.send();
         } catch (Exception e) {
-            GWT.log("Failed to ping server, redirecting blindly to " + url + ": " + e, e);
+            Utils.jslog("Failed to ping server, redirecting blindly to " + url, e);
             redirectTo(url);
         }
     }
