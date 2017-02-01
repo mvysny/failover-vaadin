@@ -112,9 +112,19 @@ final class LiveUrlFinder {
                 }
                 ongoingRequest = null;
                 GWT.log("Got response from " + url + ": " + response.getStatusCode() + " " + response.getStatusText() + ": " + response.getText());
+                if (response.getStatusCode() == 0) {
+                    // Chrome reports net::ERR_CONNECTION_REFUSED like this. This means that the server is down and we'll have to try the next one.
+                    tryNext();
+                    return;
+                }
                 listener.onStatus(url + " is up, redirecting");
-                // any kind of response (e.g. 401 unauthorized) means that the server is alive. Redirect.
+                // any proper kind of response (e.g. 401 unauthorized) means that the server is alive. Redirect.
                 redirectTo(url);
+            }
+
+            private void tryNext() {
+                final List<String> next = remainingURLs.subList(1, remainingURLs.size());
+                redirectToNextWorkingUrl(next);
             }
 
             @Override
@@ -124,8 +134,7 @@ final class LiveUrlFinder {
                 }
                 ongoingRequest = null;
                 GWT.log("Server failed to reply: " + exception, exception);
-                final List<String> next = remainingURLs.subList(1, remainingURLs.size());
-                redirectToNextWorkingUrl(next);
+                tryNext();
             }
         });
         builder.setTimeoutMillis(pingMillis);
