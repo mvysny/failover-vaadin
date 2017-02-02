@@ -179,4 +179,22 @@ public class FailoverReconnectExtension extends AbstractExtension {
     public void setAllowCancel(boolean allowCancel) {
         getState().allowCancel = allowCancel;
     }
+
+    /**
+     * If not null, the Image Ping strategy will be used to ping for a live server. This string is then simply added to every URL
+     * in {@link #getUrls()}. You can use e.g. "/favicon.ico" or "/VAADIN/themes/mytheme/img/app-icon.png".
+     * @return path to image, null by default.
+     */
+    public String getPingImagePath() {
+        return getState(false).pingImagePath;
+    }
+
+    /**
+     * If not null, the Image Ping strategy will be used to ping for a live server. This string is then simply added to every URL
+     * in {@link #getUrls()}. You can use e.g. "/favicon.ico" or "/VAADIN/themes/mytheme/img/app-icon.png".
+     * @param pingImagePath path to image, null by default.
+     */
+    public void setPingImagePath(String pingImagePath) {
+        getState().pingImagePath = pingImagePath;
+    }
 }

@@ -1,9 +1,17 @@
 package com.vaadin.failover.client;
 
+import com.google.gwt.core.client.GWT;
+import com.google.gwt.event.dom.client.ErrorEvent;
+import com.google.gwt.event.dom.client.ErrorHandler;
+import com.google.gwt.event.dom.client.LoadEvent;
+import com.google.gwt.event.dom.client.LoadHandler;
 import com.google.gwt.http.client.Request;
 import com.google.gwt.http.client.RequestBuilder;
 import com.google.gwt.http.client.RequestCallback;
 import com.google.gwt.http.client.Response;
+import com.google.gwt.user.client.Timer;
+import com.google.gwt.user.client.ui.Image;
+import com.google.gwt.user.client.ui.RootPanel;
 
 /**
  * Pings given http or https URL. Notifies the caller whether the ping was successful or not. There are multiple strategies
@@ -53,6 +61,7 @@ public interface PingStrategy {
      * Calling GET/HEAD/OPTIONS via XMLHttpRequest fails because of CORS; this type of failure cannot be differentiated from net::ERR_CONNECTION_REFUSED.
      * The target site must therefore have CORS enabled and properly configured, otherwise all I receive is a generic error and this strategy will fail
      * to ping even a live site and will incorrectly report a failure.
+     * @todo mavi introduce a Servlet which properly configures CORS; maybe based on https://vaadin.com/blog/-/blogs/using-cors-with-vaadin
      */
     class AjaxStrategy implements PingStrategy {
 
@@ -130,8 +139,88 @@ public interface PingStrategy {
         }
     }
 
+    /**
+     * Uses the JavaScript Image onload/onerror as desribed here: http://stackoverflow.com/a/11941783/377320
+     * The strategy can be tested here: http://jsfiddle.net/GSSCD/203/
+     * <h3>Prerequisites</h3>
+     * The new Image() trick works only with images - onerror is simply reported even for valid web pages, probably because a html page is provided instead of an image.
+     * This strategy bypasses CORS but requires the endpoint to be an image, otherwise the strategy will fail and will incorrectly
+     * report a failure even on a live site.
+     */
+    class ImageStrategy implements PingStrategy {
+        /**
+         * Appended to the URL being pinged, must point to an image.
+         */
+        private final String pathToImage;
 
-    // @todo mavi implement the Image strategy
-    // 1. the new Image() trick works only with images - onerror is simply reported even for valid web pages, probably because a html page is provided instead of an image.
-    //    a viable strategy thus, but only if a valid image URL is provided.
+        private Image image;
+        private Timer timeout;
+
+        /**
+         * @param pathToImage Appended to the URL being pinged, must point to an image.
+         */
+        public ImageStrategy(String pathToImage) {
+            this.pathToImage = pathToImage;
+        }
+
+        @Override
+        public void ping(final String url, int timeoutMillis, final Callback callback) {
+            if (image != null) {
+                throw new IllegalStateException("Invalid state: a ping is ongoing");
+            }
+            final String imageUrl = url + pathToImage;
+            Utils.jslog("Trying to download an image from " + imageUrl + " to verify whether the server is alive");
+            image = GWT.create(Image.class);
+            image.setVisible(false);
+            // must be attached to the DOM tree otherwise GWT will not fire any events :(
+            RootPanel.get().add(image);
+            image.addLoadHandler(new LoadHandler() {
+                @Override
+                public void onLoad(LoadEvent event) {
+                    if (image == null) {
+                        Utils.jslog("ONLOAD CANCELED");
+                        // canceled
+                        return;
+                    }
+                    timeout.cancel();
+                    Utils.jslog(url + " is live! " + event);
+                    callback.onSuccess();
+                }
+            });
+            image.addErrorHandler(new ErrorHandler() {
+                @Override
+                public void onError(ErrorEvent event) {
+                    if (image == null) {
+                        Utils.jslog("onError CANCELED");
+                        // canceled
+                        return;
+                    }
+                    cancel();
+                    Utils.jslog("Failed to obtain image from " + imageUrl + ": " + event);
+                    callback.onFailed();
+                }
+            });
+            // emulate timeout with a timer
+            timeout = new Timer() {
+                @Override
+                public void run() {
+                    Utils.jslog("Timeout obtaining image from " + imageUrl);
+                    cancel();
+                    callback.onFailed();
+                }
+            };
+            timeout.schedule(timeoutMillis);
+            image.setUrl(imageUrl);
+        }
+
+        @Override
+        public void cancel() {
+            if (image != null) {
+                RootPanel.get().remove(image);
+                image = null;
+                timeout.cancel();
+                timeout = null;
+            }
+        }
+    }
 }

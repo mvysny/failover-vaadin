@@ -20,6 +20,7 @@ final class LiveUrlFinder {
      * Notifies this listener of finder's current status.
      */
     private final FailoverReconnectConnector.StatusListener listener;
+    private final String pingImagePath;
     /**
      * If the URL does not respond within this amount of millis, it is considered dead and the finder moves onto the next URL.
      */
@@ -31,13 +32,9 @@ final class LiveUrlFinder {
      */
     private PingStrategy ongoingPing;
 
-    /**
-     * Creates the finder.
-     * @param listener
-     * @param pingMillis
-     */
-    public LiveUrlFinder(FailoverReconnectConnector.StatusListener listener, int pingMillis) {
+    public LiveUrlFinder(FailoverReconnectConnector.StatusListener listener, int pingMillis, String pingImagePath) {
         this.listener = listener;
+        this.pingImagePath = pingImagePath;
         if (listener == null) {
             throw new IllegalArgumentException("Parameter listener: invalid value " + listener + ": must not be null");
         }
@@ -89,7 +86,11 @@ final class LiveUrlFinder {
         // First, ping the URL whether it is alive. If it is, only then do the browser redirect.
 
         // There are couple of options to use when trying to ping a server, see PingStrategy for details.
-        ongoingPing = new PingStrategy.AjaxStrategy();
+        if (pingImagePath != null) {
+            ongoingPing = new PingStrategy.ImageStrategy(pingImagePath);
+        } else {
+            ongoingPing = new PingStrategy.AjaxStrategy();
+        }
 
         ongoingPing.ping(url, pingMillis, new PingStrategy.Callback() {
             @Override

@@ -8,6 +8,10 @@ import java.util.List;
 
 /**
  * Configures the FailOver dialog. Every field is set to a most reasonable defaults.
+ * <p></p>
+ * Warning: by default the {@link PingStrategy.AjaxStrategy} is used which requires CORS to be handled correctly on all servers.
+ * Set {@link #pingImagePath} to a non-null value to activate the Image Ping strategy.
+ * @todo mavi more information about ping strategies
  * @author mavi
  */
 public class FailoverReconnectState extends SharedState {
@@ -48,4 +52,10 @@ public class FailoverReconnectState extends SharedState {
      * If true, the user is able to cancel the process of finding spare servers (fail-over). Defaults to true.
      */
     public boolean allowCancel = true;
+
+    /**
+     * If not null, the Image Ping strategy will be used to ping for a live server. This string is then simply added to every URL
+     * in {@link #urls}. You can use e.g. "/favicon.ico" or "/VAADIN/themes/mytheme/img/app-icon.png".
+     */
+    public String pingImagePath = null;
 }

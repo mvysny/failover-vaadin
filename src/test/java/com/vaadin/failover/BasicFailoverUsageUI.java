@@ -22,12 +22,13 @@ public class BasicFailoverUsageUI extends AbstractTest {
     @Override
     public Component getTestComponent() {
         final List<String> urls = Arrays.asList("http://197.100.100.100", "http://197.100.100.101", "http://197.100.100.102", "https://vaadin.com");
-        final FailoverReconnectExtension reconnectExtension = FailoverReconnectExtension.addTo(UI.getCurrent());
-        reconnectExtension.setUrls(urls);
-        reconnectExtension.setStatusLabel(status);
-        reconnectExtension.setInfinite(false);
-        reconnectExtension.setRandomRobin(false);
-        reconnectExtension.setPingMillis(2000);
+        final FailoverReconnectExtension failoverExtension = FailoverReconnectExtension.addTo(UI.getCurrent());
+        failoverExtension.setUrls(urls);
+        failoverExtension.setStatusLabel(status);
+        failoverExtension.setInfinite(false);
+        failoverExtension.setRandomRobin(false);
+        failoverExtension.setPingMillis(5000);
+        failoverExtension.setPingImagePath("/VAADIN/themes/dashboard/img/app-icon.png");
         getReconnectDialogConfiguration().setDialogText("Can't connect to the server. The network may be down, or the server has crashed. Press the 'Try Spare Servers' button to try to connect to fallback server.");
         final VerticalLayout vl = new VerticalLayout();
         vl.addComponent(new Label("Kill the server and click the button: the browser should automatically redirect to " + urls));
@@ -37,13 +38,13 @@ public class BasicFailoverUsageUI extends AbstractTest {
         vl.addComponent(new Button("Start FailOver", new Button.ClickListener() {
             @Override
             public void buttonClick(Button.ClickEvent event) {
-                reconnectExtension.startFailOver();
+                failoverExtension.startFailOver();
             }
         }));
         vl.addComponent(new Button("Cancel FailOver", new Button.ClickListener() {
             @Override
             public void buttonClick(Button.ClickEvent event) {
-                reconnectExtension.cancelFailOver();
+                failoverExtension.cancelFailOver();
             }
         }));
         return vl;

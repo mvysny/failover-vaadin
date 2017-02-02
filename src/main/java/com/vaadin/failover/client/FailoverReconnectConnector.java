@@ -104,7 +104,7 @@ public class FailoverReconnectConnector extends AbstractExtensionConnector imple
             return;
         }
         // start the liveUrlFinder process
-        liveUrlFinder = new LiveUrlFinder(new StatusListener() {
+        final StatusListener listener = new StatusListener() {
             @Override
             public void onStatus(String message) {
                 for (StatusListener listener : statusListeners) {
@@ -136,7 +136,8 @@ public class FailoverReconnectConnector extends AbstractExtensionConnector imple
                     }
                 }
             }
-        }, getState().pingMillis);
+        };
+        liveUrlFinder = new LiveUrlFinder(listener, getState().pingMillis, getState().pingImagePath);
         liveUrlFinder.start(urls);
     }
 
