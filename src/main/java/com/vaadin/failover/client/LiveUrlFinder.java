@@ -25,17 +25,11 @@ final class LiveUrlFinder {
      */
     private final int pingMillis;
     /**
-     * True if {@link #start(List)} has been called.
-     */
-    private boolean started = false;
-    /**
-     * True if {@link #cancel()} has been called.
-     */
-    private boolean canceled = false;
-    /**
      * Currently ongoing probe. Used to cancel+cleanup the current request when the {@link #cancel()} is called.
+     * <p></p>
+     * Not null if {@link #start(List)} has been called.
      */
-    private Request ongoingRequest;
+    private PingStrategy ongoingPing;
 
     /**
      * Creates the finder.
@@ -58,13 +52,9 @@ final class LiveUrlFinder {
      * @param urls the URLs to probe, in this order.
      */
     public void start(final List<String> urls) {
-        if (canceled) {
-            throw new IllegalStateException("Invalid state: canceled");
-        }
-        if (started) {
+        if (ongoingPing != null) {
             throw new IllegalStateException("Invalid state: already started");
         }
-        started = true;
         redirectToNextWorkingUrl(urls);
     }
 
@@ -73,12 +63,8 @@ final class LiveUrlFinder {
      * Idempotent - second and further calls to this method are ignored.
      */
     public void cancel() {
-        if (!canceled) {
-            canceled = true;
-            if (ongoingRequest != null) {
-                ongoingRequest.cancel();
-                ongoingRequest = null;
-            }
+        if (ongoingPing != null) {
+            ongoingPing.cancel();
         }
     }
 
@@ -88,9 +74,6 @@ final class LiveUrlFinder {
      * @param remainingURLs the URLs to probe, not null, may be empty.
      */
     private void redirectToNextWorkingUrl(final List<String> remainingURLs) {
-        if (canceled) {
-            return;
-        }
         if (remainingURLs.isEmpty()) {
             // no more URLs to reconnect. Maybe start anew? Let the owner decide.
             listener.onGaveUp();
@@ -105,59 +88,23 @@ final class LiveUrlFinder {
         // We don't want to simply redirect the browser to the URL straight away - what if the fallback server is down as well?
         // First, ping the URL whether it is alive. If it is, only then do the browser redirect.
 
-        // unfortunately, using the preflights OPTIONS method won't fool the browser - it still shows that
-        // XMLHttpRequest cannot load http://xyz/. Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource. Origin 'http://localhost:9998' is therefore not allowed access. The response had HTTP status code 405.
-        // so we can't use this method to differentiate between net:: issue and CORS issue.
-//        final RequestBuilder builder = new RequestBuilder("OPTIONS", url) {};
+        // There are couple of options to use when trying to ping a server, see PingStrategy for details.
+        ongoingPing = new PingStrategy.AjaxStrategy();
 
-        // HEAD doesn't work either.
-//        final RequestBuilder builder = new RequestBuilder("HEAD", url) {};
-
-        final RequestBuilder builder = new RequestBuilder(RequestBuilder.GET, url);
-        builder.setCallback(new RequestCallback() {
+        ongoingPing.ping(url, pingMillis, new PingStrategy.Callback() {
             @Override
-            public void onResponseReceived(Request request, Response response) {
-                if (canceled) {
-                    return;
-                }
-                ongoingRequest = null;
-                Utils.jslog("Got response from " + url + ": " + response.getStatusCode() + " " + response.getStatusText() + ": " + response.getText() + " hu " + response.getHeadersAsString());
-                if (response.getStatusCode() == 0) {
-                    // Chrome reports all net:: issues like net::ERR_CONNECTION_REFUSED or net::ERR_NAME_NOT_RESOLVED like this.
-                    // This usually means that the server is down and we'll have to try the next one.
-                    // The trouble with this approach is that the CORS error is reported this way as well.
-                    // Thus, to differentiate
-                    tryNext();
-                    return;
-                }
+            public void onSuccess() {
                 listener.onStatus(url + " is up, redirecting");
-                // any proper kind of response (e.g. 401 unauthorized) means that the server is alive. Redirect.
                 redirectTo(url);
             }
 
-            private void tryNext() {
+            @Override
+            public void onFailed() {
+                // try next URL
                 final List<String> next = remainingURLs.subList(1, remainingURLs.size());
                 redirectToNextWorkingUrl(next);
             }
-
-            @Override
-            public void onError(Request request, Throwable exception) {
-                if (canceled) {
-                    return;
-                }
-                ongoingRequest = null;
-                Utils.jslog("Server failed to reply", exception);
-                tryNext();
-            }
         });
-        builder.setTimeoutMillis(pingMillis);
-//        builder.setHeader("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8");
-        try {
-            ongoingRequest = builder.send();
-        } catch (Exception e) {
-            Utils.jslog("Failed to ping server, redirecting blindly to " + url, e);
-            redirectTo(url);
-        }
     }
 
     private void redirectTo(String url) {
