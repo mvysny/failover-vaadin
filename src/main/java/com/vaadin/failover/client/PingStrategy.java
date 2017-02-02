@@ -168,7 +168,9 @@ public interface PingStrategy {
             if (image != null) {
                 throw new IllegalStateException("Invalid state: a ping is ongoing");
             }
-            final String imageUrl = url + pathToImage;
+            // make sure that we don't get some cached image - pollute the cache by adding some random (or changing) number to the URL.
+            // the ?forcenocache has no meaning really.
+            final String imageUrl = url + pathToImage + "?forcenocache=" + System.currentTimeMillis();
             Utils.jslog("Trying to download an image from " + imageUrl + " to verify whether the server is alive");
             image = GWT.create(Image.class);
             image.setVisible(false);
