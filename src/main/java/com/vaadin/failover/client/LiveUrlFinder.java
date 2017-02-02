@@ -110,6 +110,9 @@ final class LiveUrlFinder {
         // so we can't use this method to differentiate between net:: issue and CORS issue.
 //        final RequestBuilder builder = new RequestBuilder("OPTIONS", url) {};
 
+        // HEAD doesn't work either.
+//        final RequestBuilder builder = new RequestBuilder("HEAD", url) {};
+
         final RequestBuilder builder = new RequestBuilder(RequestBuilder.GET, url);
         builder.setCallback(new RequestCallback() {
             @Override
@@ -148,7 +151,7 @@ final class LiveUrlFinder {
             }
         });
         builder.setTimeoutMillis(pingMillis);
-        builder.setHeader("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8");
+//        builder.setHeader("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8");
         try {
             ongoingRequest = builder.send();
         } catch (Exception e) {
