@@ -1,11 +1,14 @@
 # FailOver Vaadin Add-On
 
-A proof-of-concept of a browser-side fail-over. If the connection to the primary server is lost,
+A Vaadin Add-on which automatically performs browser-side fail-over. If the connection to the primary server is lost,
 the browser will automatically redirect itself to a fallback/spare server of your choosing.
+
+To demonstrate, check out this [FailOver Vaadin Add-On Video](https://www.youtube.com/watch?v=hWkMIDWM-E8) on Youtube.
+The video shows launching of four independent Jetty instances in Docker on four different ports, 8080-8083.
 
 Advantages:
 
-* No single point of failure
+* No single point of failure. Well, the browser is the single-point-of-failure, but that's user's responsibility ;)
 * Incredibly easy setup - just add Maven dependency on this add-on and recompile your widgetset.
 * No server-side clustering needed
 * Servers are totally independent one from another, and may even use a mixture of server kinds,
@@ -18,16 +21,78 @@ Disadvantages:
 * If the main server dies and user presses F5 in the browser, she will just get "Connection Refused".
   This could be remedied by offline mode
 
+Features:
+
+* Supports multiple fallback servers to reconnect to, either in round-robin or random-robin.
+* Prior reconnecting the URL is pinged first, whether the spare server is actually alive.
+* A simple load-balancer, by selecting a random server from the list instead of always choosing the primary one.
+* The user must initiate the failover process manually. This way she will understand that the server has crashed and that she may lose some data (that is, the session).
+
 Future improvements:
 
-* Support multiple fallback servers to reconnect to
-* Prior reconnecting, ping the URL first, whether the spare server is actually alive.
-* A simple load-balancer, by selecting a random server from the list instead of always
-  choosing the primary one.
 * Offline mode of the bootstrap page, which will connect to the spare server even 
   in case when the primary server is down.
 
-## Development instructions 
+## Quickstart
+
+Add the following to your pom.xml:
+```xml
+<dependency>
+    <groupId>org.vaadin.addons.failover</groupId>
+    <artifactId>failover-vaadin</artifactId>
+    <version>0.1.2</version>
+</dependency>
+```
+You'll need to add a Vaadin Add-on repository as well, please see [https://vaadin.com/directory#!addon/failover-vaadin] on how to do that.
+
+Then, add the following code to your UI's `init()` method:
+
+```java
+final List<String> urls = Arrays.asList("http://localhost:8080", "http://localhost:8081", "http://localhost:8082", "http://localhost:8083");
+final FailoverReconnectExtension failoverExtension = FailoverReconnectExtension.addTo(UI.getCurrent());
+failoverExtension.setUrls(urls);
+failoverExtension.setPingImagePath("/VAADIN/themes/dashboard/img/app-icon.png");
+getReconnectDialogConfiguration().setDialogText("Can't connect to the server. The network may be down, or the server has crashed. Press the 'Try Spare Servers' button to try to connect to fallback server.");
+```
+
+You will now have to configure your app to allow to ping it properly from JavaScript. Please read on.
+
+### Important - Ping in JavaScript
+
+Prior failing over to a server, we actually need to know whether the server is actually alive. Thus, JavaScript needs to ping the server.
+However, that's not easy to do. There are two viable workaround solutions, both with drawbacks:
+
+#### The `image` ping
+
+The easiest way is to use the `image` element to load arbitrary image from the server. If that succeeds, the server is online. 
+If that fails, the server is down. The problem is that if the target image is 404 not found or
+it is not an image (but, say, a CSS), the image loading will fail.
+
+When employing this solution, just drop any png image e.g. to your theme, then make sure that:
+
+1. the image exists, and
+2. it is actually an image
+
+To activate this ping type, just call
+```java
+failoverExtension.setPingImagePath("/VAADIN/themes/dashboard/img/app-icon.png");
+```
+
+This example code works for the Vaadin Dashboard demo. Please modify it to fit your application.
+
+#### The Ajax/`XMLHttpRequest` ping
+
+The idea is to open a http request to the target server. If the server responds in any way, it is alive.
+
+The problem is that browser disallows to connect to another site because of [Cross-Origin resource sharing](https://en.wikipedia.org/wiki/Cross-origin_resource_sharing). 
+
+When employing this type of ping, don't call the `setPingImagePath` method to activate the Ajax ping. Then, make sure that:
+ 
+* you have CORS configured correctly in your webapp. If the CORS is misconfigured, the ping will incorrectly report the server being down.
+
+You can follow the following tutorial to set up CORS in your webapp: https://vaadin.com/blog/-/blogs/using-cors-with-vaadin
+
+## Add-on Development instructions 
 
 This is a Vaadin add-on project created with in.virit:vaadin-gwt-addon archetype.
 The project supports GWT based extensions for Vaadin.
