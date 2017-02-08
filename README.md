@@ -43,13 +43,13 @@ Add the following to your pom.xml:
     <version>0.1.2</version>
 </dependency>
 ```
-You'll need to add a Vaadin Add-on repository as well, please see [https://vaadin.com/directory#!addon/failover-vaadin] on how to do that.
+You'll need to add a Vaadin Add-on repository as well, please see [https://vaadin.com/directory#!addon/failover-vaadin]() on how to do that.
 
 Then, add the following code to your UI's `init()` method:
 
 ```java
 final List<String> urls = Arrays.asList("http://localhost:8080", "http://localhost:8081", "http://localhost:8082", "http://localhost:8083");
-final FailoverReconnectExtension failoverExtension = FailoverReconnectExtension.addTo(UI.getCurrent());
+final FailoverReconnectExtension failoverExtension = FailoverReconnectExtension.addTo(this);
 failoverExtension.setUrls(urls);
 failoverExtension.setPingImagePath("/VAADIN/themes/dashboard/img/app-icon.png");
 getReconnectDialogConfiguration().setDialogText("Can't connect to the server. The network may be down, or the server has crashed. Press the 'Try Spare Servers' button to try to connect to fallback server.");
