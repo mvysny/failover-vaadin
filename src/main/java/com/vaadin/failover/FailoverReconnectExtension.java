@@ -157,7 +157,7 @@ public class FailoverReconnectExtension extends AbstractExtension {
 
     /**
      * The configurable caption of the "Try Spare Servers" button. Defaults to "Try Spare Servers".
-     * @param trySpareServersButtonCaption
+     * @param trySpareServersButtonCaption the button caption
      */
     public void setTrySpareServersButtonCaption(String trySpareServersButtonCaption) {
         Objects.requireNonNull(trySpareServersButtonCaption);

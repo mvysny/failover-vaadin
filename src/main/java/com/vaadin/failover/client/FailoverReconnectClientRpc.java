@@ -8,7 +8,7 @@ import com.vaadin.shared.communication.ClientRpc;
 public interface FailoverReconnectClientRpc extends ClientRpc {
     /**
      * Begins the fail-over process. As the fail-over process progresses, status listeners are notified.
-     * <p></p>
+     * <p>
      * If the failover process is currently ongoing, this call does nothing.
      */
     void startFailOver();

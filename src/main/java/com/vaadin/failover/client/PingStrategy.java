@@ -61,7 +61,8 @@ public interface PingStrategy {
      * Calling GET/HEAD/OPTIONS via XMLHttpRequest fails because of CORS; this type of failure cannot be differentiated from net::ERR_CONNECTION_REFUSED.
      * The target site must therefore have CORS enabled and properly configured, otherwise all I receive is a generic error and this strategy will fail
      * to ping even a live site and will incorrectly report a failure.
-     * @todo mavi introduce a Servlet which properly configures CORS; maybe based on https://vaadin.com/blog/-/blogs/using-cors-with-vaadin
+     * 
+     * TODO mavi introduce a Servlet which properly configures CORS; maybe based on https://vaadin.com/blog/-/blogs/using-cors-with-vaadin
      */
     class AjaxStrategy implements PingStrategy {
 
