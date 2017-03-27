@@ -8,10 +8,11 @@ import java.util.List;
 
 /**
  * Configures the FailOver dialog. Every field is set to a most reasonable defaults.
- * <p></p>
+ * <p>
  * Warning: by default the {@link PingStrategy.AjaxStrategy} is used which requires CORS to be handled correctly on all servers.
  * Set {@link #pingImagePath} to a non-null value to activate the Image Ping strategy.
- * @todo mavi more information about ping strategies
+ * 
+ * TODO mavi more information about ping strategies
  * @author mavi
  */
 public class FailoverReconnectState extends SharedState {
@@ -38,7 +39,7 @@ public class FailoverReconnectState extends SharedState {
     /**
      * When reconnecting, the URL is probed first, to check whether it is actually alive. If the server does not respond
      * within the defined period, it is considered dead and the reconnect logic moves to the next URL.
-     * <p></p>
+     * <p>
      * The value is in milliseconds; the default is 10 seconds.
      */
     public int pingMillis = 10000;
