@@ -2,14 +2,14 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.vaadin.addons.failover</groupId>
     <artifactId>failover-vaadin</artifactId>
-    <version>0.1.4-SNAPSHOT</version>
+    <version>0.2-SNAPSHOT</version>
     <packaging>bundle</packaging>
     <organization>
         <name>Vaadin Community</name>
     </organization>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <vaadin.version>8.0.2</vaadin.version>
+        <vaadin.version>8.0.5</vaadin.version>
         <vaadin.plugin.version>${vaadin.version}</vaadin.plugin.version>
         <!-- ZIP Manifest fields -->
         <Implementation-Version>${project.version}</Implementation-Version>

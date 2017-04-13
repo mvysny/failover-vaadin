@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/mvysny/failover-vaadin.svg?branch=master)](https://travis-ci.org/mvysny/failover-vaadin)
+
 # FailOver Vaadin Add-On
 
 A Vaadin Add-on which automatically performs browser-side fail-over. If the connection to the primary server is lost,
