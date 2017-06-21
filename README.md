@@ -8,6 +8,8 @@ the browser will automatically redirect itself to a fallback/spare server of you
 To demonstrate, check out this [FailOver Vaadin Add-On Video](https://www.youtube.com/watch?v=hWkMIDWM-E8) on Youtube.
 The video shows launching of four independent Jetty instances in Docker on four different ports, 8080-8083.
 
+The main idea behind this add-on is explained in the [Client-side Fail-over](https://vaadin.com/blog/-/blogs/client-side-fail-over) blogpost.
+
 Advantages:
 
 * No single point of failure. Well, the browser is the single-point-of-failure, but that's user's responsibility ;)
