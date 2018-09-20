@@ -1,4 +1,6 @@
 [![Build Status](https://travis-ci.org/mvysny/failover-vaadin.svg?branch=master)](https://travis-ci.org/mvysny/failover-vaadin)
+[![Published on Vaadin  Directory](https://img.shields.io/badge/Vaadin%20Directory-published-00b4f0.svg)](https://vaadin.com/directory/component/failover-vaadin)
+[![Stars on Vaadin Directory](https://img.shields.io/vaadin-directory/star/failover-vaadin.svg)](https://vaadin.com/directory/component/failover-vaadin)
 
 # FailOver Vaadin Add-On
 
