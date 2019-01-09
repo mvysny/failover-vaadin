@@ -28,10 +28,14 @@ public class BasicFailoverUsageUI extends AbstractTest {
         failoverExtension.setInfinite(false);
         failoverExtension.setRandomRobin(false);
         failoverExtension.setPingMillis(5000);
-        failoverExtension.setPingImagePath("/VAADIN/themes/dashboard/img/app-icon.png");
+        // must exist on vaadin.com otherwise the failover will think vaadin.com is down. Read "The Image Ping" at https://github.com/mvysny/failover-vaadin
+        // for more information
+        failoverExtension.setPingImagePath("/images/hero-reindeer.svg");
+
         getReconnectDialogConfiguration().setDialogText("Can't connect to the server. The network may be down, or the server has crashed. Press the 'Try Spare Servers' button to try to connect to fallback server.");
+
         final VerticalLayout vl = new VerticalLayout();
-        vl.addComponent(new Label("1. Kill the server and click the button: the browser should automatically redirect to " + urls));
+        vl.addComponent(new Label("1. Kill the server and click the button: the browser should automatically redirect to " + urls + ". Note that we're using PING "));
         vl.addComponent(new Button("Click me"));
         vl.addComponent(new Label("OR 2. The button below will invoke the reconnect functionality directly, no need to kill the server."));
         vl.addComponent(status);
