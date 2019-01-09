@@ -42,11 +42,12 @@ Future improvements:
 ## Quickly Test It Out
 
 1. Clone this project and open it on your IDE
-2. Find the `Server` class and run its main method. It will start first server on [localhost:9991](http://localhost:9991/com.vaadin.failover.BasicFailoverUsageUI)
-3. Find the `Server2` class and run its main method. It will start second server on [localhost:9992](http://localhost:9992/com.vaadin.failover.BasicFailoverUsageUI)
-4. Browse the first server at [localhost:9991](http://localhost:9991/com.vaadin.failover.BasicFailoverUsageUI).
-5. Kill the `Server` class.
-6. Press the "Click Me" button. Then, press the "Try Spare Servers" button. The browser should automatically find and
+2. Run `mvn -C clean install` to compile the widgetset.
+3. Find the `Server` class and run its main method. It will start first server on [localhost:9991](http://localhost:9991/com.vaadin.failover.BasicFailoverUsageUI)
+4. Find the `Server2` class and run its main method. It will start second server on [localhost:9992](http://localhost:9992/com.vaadin.failover.BasicFailoverUsageUI)
+5. Browse the first server at [localhost:9991](http://localhost:9991/com.vaadin.failover.BasicFailoverUsageUI).
+6. Kill the `Server` class.
+7. Press the "Click Me" button. Then, press the "Try Spare Servers" button. The browser should automatically find and
    open the second server.
 
 ## Integrating With Your App
