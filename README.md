@@ -39,7 +39,17 @@ Future improvements:
 * Offline mode of the bootstrap page, which will connect to the spare server even 
   in case when the primary server is down.
 
-## Quickstart
+## Quickly Test It Out
+
+1. Clone this project and open it on your IDE
+2. Find the `Server` class and run its main method. It will start first server on [localhost:9991](http://localhost:9991/com.vaadin.failover.BasicFailoverUsageUI)
+3. Find the `Server2` class and run its main method. It will start second server on [localhost:9992](http://localhost:9992/com.vaadin.failover.BasicFailoverUsageUI)
+4. Browse the first server at [localhost:9991](http://localhost:9991/com.vaadin.failover.BasicFailoverUsageUI).
+5. Kill the `Server` class.
+6. Press the "Click Me" button. Then, press the "Try Spare Servers" button. The browser should automatically find and
+   open the second server.
+
+## Integrating With Your App
 
 Add the following to your pom.xml:
 ```xml
@@ -112,7 +122,7 @@ This is a Vaadin add-on project created with in.virit:vaadin-gwt-addon archetype
 The project supports GWT based extensions for Vaadin.
 
 1. Import to your favourite IDE
-2. Run main method of the Server class to launch embedded web server that lists all your test UIs at http://localhost:9998
+2. Run main method of the Server class to launch embedded web server that lists all your test UIs at http://localhost:9991
 3. Code and test
   * create UI's for various use cases for your add-ons, see examples. These can also work as usage examples for your add-on users.
   * create browser level and integration tests under src/test/java/

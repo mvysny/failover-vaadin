@@ -21,16 +21,16 @@ public class BasicFailoverUsageUI extends AbstractTest {
 
     @Override
     public Component getTestComponent() {
-        final List<String> urls = Arrays.asList("http://197.100.100.100", "http://197.100.100.101", "http://197.100.100.102", "https://vaadin.com");
+        final List<String> urls = Arrays.asList("http://localhost:9991", "http://localhost:9992");
         final FailoverReconnectExtension failoverExtension = FailoverReconnectExtension.addTo(UI.getCurrent());
         failoverExtension.setUrls(urls);
         failoverExtension.setStatusLabel(status);
         failoverExtension.setInfinite(false);
         failoverExtension.setRandomRobin(false);
         failoverExtension.setPingMillis(5000);
-        // must exist on vaadin.com otherwise the failover will think vaadin.com is down. Read "The Image Ping" at https://github.com/mvysny/failover-vaadin
+        // the image must exist otherwise the failover will think that the page is down. Read "The Image Ping" at https://github.com/mvysny/failover-vaadin
         // for more information
-        failoverExtension.setPingImagePath("/images/hero-reindeer.svg");
+        failoverExtension.setPingImagePath("/VAADIN/themes/valo/app-icon.png");
 
         getReconnectDialogConfiguration().setDialogText("Can't connect to the server. The network may be down, or the server has crashed. Press the 'Try Spare Servers' button to try to connect to fallback server.");
 
