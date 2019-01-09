@@ -31,9 +31,9 @@ public class BasicFailoverUsageUI extends AbstractTest {
         failoverExtension.setPingImagePath("/VAADIN/themes/dashboard/img/app-icon.png");
         getReconnectDialogConfiguration().setDialogText("Can't connect to the server. The network may be down, or the server has crashed. Press the 'Try Spare Servers' button to try to connect to fallback server.");
         final VerticalLayout vl = new VerticalLayout();
-        vl.addComponent(new Label("Kill the server and click the button: the browser should automatically redirect to " + urls));
+        vl.addComponent(new Label("1. Kill the server and click the button: the browser should automatically redirect to " + urls));
         vl.addComponent(new Button("Click me"));
-        vl.addComponent(new Label("The button below will invoke the reconnect functionality directly, no need to kill the server."));
+        vl.addComponent(new Label("OR 2. The button below will invoke the reconnect functionality directly, no need to kill the server."));
         vl.addComponent(status);
         vl.addComponent(new Button("Start FailOver", new Button.ClickListener() {
             @Override
