@@ -73,7 +73,7 @@ public class MyUI extends UI {
         final List<String> urls = Arrays.asList("http://localhost:8080", "http://localhost:8081", "http://localhost:8082", "http://localhost:8083");
         final FailoverReconnectExtension failoverExtension = FailoverReconnectExtension.addTo(this);
         failoverExtension.setUrls(urls);
-        failoverExtension.setPingImagePath("/VAADIN/themes/dashboard/img/app-icon.png");
+        failoverExtension.setPingImagePath("/VAADIN/themes/valo/img/app-icon.png");
         getReconnectDialogConfiguration().setDialogText("Can't connect to the server. The network may be down, or the server has crashed. Press the 'Try Spare Servers' button to try to connect to fallback server.");
         ...
     }
@@ -100,10 +100,16 @@ When employing this solution, just drop any png image e.g. to your theme, then m
 
 To activate this ping type, just call
 ```java
-failoverExtension.setPingImagePath("/VAADIN/themes/dashboard/img/app-icon.png");
+failoverExtension.setPingImagePath("/VAADIN/themes/valo/img/app-icon.png");
 ```
 
-This example code works for the Vaadin Dashboard demo. Please modify it to fit your application.
+This example code expects that you're using the Valo theme and you have the `app-icon.png` image
+located in your `src/main/resources/VAADIN/themes/valo/img` folder. If not, please place an image
+into your theme folder and update the ping image path accordingly.
+
+For example, when you launch the `Server` example class, the ping image is located at
+[http://localhost:9991/VAADIN/themes/valo/img/app-icon.png](http://localhost:9991/VAADIN/themes/valo/img/app-icon.png)
+and is loaded from the [src/test/resources/VAADIN/themes/valo/img/app-icon.png](src/test/resources/VAADIN/themes/valo/img).
 
 #### The Ajax/`XMLHttpRequest` ping
 
