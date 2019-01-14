@@ -21,13 +21,14 @@ public class BasicFailoverUsageUI extends AbstractTest {
 
     @Override
     public Component getTestComponent() {
-        final List<String> urls = Arrays.asList("http://localhost:9991", "http://localhost:9992");
+        final List<String> urls = Arrays.asList("http://localhost:9991/com.vaadin.failover.BasicFailoverUsageUI", "http://localhost:9992/com.vaadin.failover.BasicFailoverUsageUI");
         final FailoverReconnectExtension failoverExtension = FailoverReconnectExtension.addTo(UI.getCurrent());
         failoverExtension.setUrls(urls);
-        failoverExtension.setStatusLabel(status);
-        failoverExtension.setInfinite(false);
-        failoverExtension.setRandomRobin(false);
-        failoverExtension.setPingMillis(5000);
+        failoverExtension.setAutomatic(true);
+//        failoverExtension.setStatusLabel(status);
+//        failoverExtension.setInfinite(false);
+//        failoverExtension.setRandomRobin(false);
+//        failoverExtension.setPingMillis(5000);
         // the image must exist otherwise the failover will think that the page is down. Read "The Image Ping" at https://github.com/mvysny/failover-vaadin
         // for more information
         failoverExtension.setPingImagePath("/VAADIN/themes/valo/img/app-icon.png");

@@ -197,4 +197,21 @@ public class FailoverReconnectExtension extends AbstractExtension {
     public void setPingImagePath(String pingImagePath) {
         getState().pingImagePath = pingImagePath;
     }
+
+    /**
+     * If true, the user will be automatically redirected to next fail-over spare server without notification. Defaults to false.
+     * @return true if user is automatically redirected to the next fail-over server.
+     */
+    public boolean isAutomatic() {
+        return getState(false).automatic;
+    }
+
+    /**
+     * If true, the user will be automatically redirected to next fail-over server without notification. Defaults to false.
+     * @param automatic true if user is automatically redirected to the next fail-over server.
+     */
+    public void setAutomatic(boolean automatic) {
+        getState().automatic = automatic;
+    }
+
 }

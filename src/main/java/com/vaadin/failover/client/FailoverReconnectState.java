@@ -59,4 +59,9 @@ public class FailoverReconnectState extends SharedState {
      * in {@link #urls}. You can use e.g. "/favicon.ico" or "/VAADIN/themes/mytheme/img/app-icon.png".
      */
     public String pingImagePath = null;
+
+    /**
+     * If true, the user will be automatically redirected to next fail-over server without notification. Defaults to false.
+     */
+    public boolean automatic = false;
 }
