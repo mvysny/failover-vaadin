@@ -28,7 +28,7 @@ final class LiveUrlFinder {
     /**
      * Currently ongoing probe. Used to cancel+cleanup the current request when the {@link #cancel()} is called.
      * <p></p>
-     * Not null if {@link #start(List)} has been called.
+     * Not null if {@link #start(List,boolean)} has been called.
      */
     private PingStrategy ongoingPing;
 
@@ -48,11 +48,11 @@ final class LiveUrlFinder {
      * Probes given list of URLs and redirects the browser automatically to the first live URL.
      * @param urls the URLs to probe, in this order.
      */
-    public void start(final List<String> urls) {
+    public void start(final List<String> urls, boolean automatic) {
         if (ongoingPing != null) {
             throw new IllegalStateException("Invalid state: already started");
         }
-        redirectToNextWorkingUrl(urls);
+        redirectToNextWorkingUrl(urls, automatic);
     }
 
     /**
@@ -70,7 +70,7 @@ final class LiveUrlFinder {
      * Fires notification messages on {@link #listener}.
      * @param remainingURLs the URLs to probe, not null, may be empty.
      */
-    private void redirectToNextWorkingUrl(final List<String> remainingURLs) {
+    private void redirectToNextWorkingUrl(final List<String> remainingURLs, final boolean automatic) {
         if (remainingURLs.isEmpty()) {
             // no more URLs to reconnect. Maybe start anew? Let the owner decide.
             listener.onGaveUp();
@@ -84,6 +84,12 @@ final class LiveUrlFinder {
 
         // We don't want to simply redirect the browser to the URL straight away - what if the fallback server is down as well?
         // First, ping the URL whether it is alive. If it is, only then do the browser redirect.
+
+        // Do automatic redirect if requested
+        if (automatic) {
+            redirectTo(url);
+        }
+
 
         // There are couple of options to use when trying to ping a server, see PingStrategy for details.
         if (pingImagePath != null) {
@@ -103,7 +109,7 @@ final class LiveUrlFinder {
             public void onFailed() {
                 // try next URL
                 final List<String> next = remainingURLs.subList(1, remainingURLs.size());
-                redirectToNextWorkingUrl(next);
+                redirectToNextWorkingUrl(next, automatic);
             }
         });
     }

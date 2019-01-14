@@ -138,7 +138,7 @@ public class FailoverReconnectConnector extends AbstractExtensionConnector imple
             }
         };
         liveUrlFinder = new LiveUrlFinder(listener, getState().pingMillis, getState().pingImagePath);
-        liveUrlFinder.start(urls);
+        liveUrlFinder.start(urls, getState().automatic);
     }
 
     @Override

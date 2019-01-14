@@ -37,7 +37,10 @@ public class FailoverReconnectDialog extends DefaultReconnectDialog {
     public void setReconnecting(boolean reconnecting) {
         super.setReconnecting(reconnecting);
         if (reconnecting) {
-            if (reconnect == null) {
+            if (getFailoverConnector().getState().automatic) {
+                // Start automatic failover without showing the dialog
+                getFailoverConnector().startFailOver();
+            } else if (reconnect == null) {
                 // create the UI buttons
                 reconnect = new Button(getFailoverConnector().getState().trySpareServersButtonCaption, new ClickHandler() {
                     @Override
